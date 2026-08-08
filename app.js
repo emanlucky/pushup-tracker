@@ -121,39 +121,6 @@ function render() {
   document.getElementById("best").textContent = best.toLocaleString();
   document.getElementById("streak").textContent = `${calculateStreak()} 🔥`;
   }
-  function renderActivityLog() {
-  const log = document.getElementById("activityLog");
-
-  if (!log) return;
-
-  const today = todayKey();
-
-  const todayActivity = (data.activity || [])
-    .filter(item => {
-      const date = new Date(item.timestamp);
-      return dateKeyFromDate(date) === today;
-    })
-    .reverse();
-
-  if (!todayActivity.length) {
-    log.innerHTML = `<div class="empty">No push-ups logged today.</div>`;
-    return;
-  }
-
-  log.innerHTML = todayActivity.map(item => {
-    const time = new Date(item.timestamp).toLocaleTimeString([], {
-      hour: "numeric",
-      minute: "2-digit"
-    });
-
-    return `
-      <div class="activity-row">
-        <strong>+${item.amount}</strong>
-        <span>${time}</span>
-      </div>
-    `;
-  }).join("");
-}
 
 function calculateStreak() {
   let streak = 0;
