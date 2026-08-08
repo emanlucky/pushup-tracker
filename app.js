@@ -4,6 +4,7 @@ const defaults = {
   defaultAmount: 10,
   dailyGoal: 100,
   history: {},
+  activity: [],
   undo: []
 };
 
@@ -35,8 +36,23 @@ function add(amount) {
   if (!Number.isFinite(amount) || amount <= 0) return;
 
   const key = todayKey();
-  data.history[key] = (data.history[key] || 0) + Math.round(amount);
-  data.undo.push({ key, amount: Math.round(amount) });
+  const added = Math.round(amount);
+
+  // Add to today's total
+  data.history[key] = (data.history[key] || 0) + added;
+
+  // Record exactly when this addition happened
+  data.activity = data.activity || [];
+  data.activity.push({
+    timestamp: new Date().toISOString(),
+    amount: added
+  });
+
+  // Save information needed for Undo
+  data.undo.push({
+    key,
+    amount: added
+  });
 
   if (data.undo.length > 50) data.undo.shift();
 
