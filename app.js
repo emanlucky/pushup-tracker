@@ -41,14 +41,14 @@ function add(amount) {
   // Add to today's total
   data.history[key] = (data.history[key] || 0) + added;
 
-  // Record exactly when this addition happened
+  // Record exactly when this happened
   data.activity = data.activity || [];
   data.activity.push({
     timestamp: new Date().toISOString(),
     amount: added
   });
 
-  // Save information needed for Undo
+  // Save for undo
   data.undo.push({
     key,
     amount: added
@@ -109,7 +109,8 @@ function render() {
       </div>
     `).join("");
   }
-
+  renderActivityLog();
+}
   const values = Object.values(data.history).map(Number);
   const total = values.reduce((a, b) => a + b, 0);
   const average = values.length ? Math.round(total / values.length) : 0;
@@ -119,6 +120,39 @@ function render() {
   document.getElementById("average").textContent = average.toLocaleString();
   document.getElementById("best").textContent = best.toLocaleString();
   document.getElementById("streak").textContent = `${calculateStreak()} 🔥`;
+  }
+  function renderActivityLog() {
+  const log = document.getElementById("activityLog");
+
+  if (!log) return;
+
+  const today = todayKey();
+
+  const todayActivity = (data.activity || [])
+    .filter(item => {
+      const date = new Date(item.timestamp);
+      return dateKeyFromDate(date) === today;
+    })
+    .reverse();
+
+  if (!todayActivity.length) {
+    log.innerHTML = `<div class="empty">No push-ups logged today.</div>`;
+    return;
+  }
+
+  log.innerHTML = todayActivity.map(item => {
+    const time = new Date(item.timestamp).toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit"
+    });
+
+    return `
+      <div class="activity-row">
+        <strong>+${item.amount}</strong>
+        <span>${time}</span>
+      </div>
+    `;
+  }).join("");
 }
 
 function calculateStreak() {
