@@ -1,4 +1,5 @@
-const STORAGE_KEY = "pushupTrackerV1";
+const STORAGE_KEY = "pushupTrackerV2";
+const CACHE = "pushup-tracker-v2";
 
 const defaults = {
   defaultAmount: 10,
