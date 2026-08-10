@@ -1,105 +1,448 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#111827" />
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="icon.svg" />
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  >
+
+  <meta
+    name="theme-color"
+    content="#111827"
+  >
+
+  <meta
+    name="apple-mobile-web-app-capable"
+    content="yes"
+  >
+
+  <meta
+    name="apple-mobile-web-app-status-bar-style"
+    content="black-translucent"
+  >
+
+  <meta
+    name="apple-mobile-web-app-title"
+    content="Push-Up Tracker"
+  >
+
+  <link rel="manifest" href="manifest.json">
+
+  <link rel="icon" href="icon.svg">
+
   <title>Push-Up Tracker</title>
-  <link rel="stylesheet" href="style.css" />
+
+  <link rel="stylesheet" href="style.css">
 </head>
+
+
 <body>
+
   <main class="app">
+
+    <!-- =========================
+         HEADER
+    ========================== -->
+
     <header>
+
       <div>
-        <p class="eyebrow">DAILY FITNESS</p>
-        <h1>Push-Up Tracker</h1>
+
+        <p class="eyebrow">
+          DAILY FITNESS
+        </p>
+
+        <h1>
+          Push-Up Tracker
+        </h1>
+
       </div>
-      <button id="settingsBtn" class="icon-btn" aria-label="Settings">⚙️</button>
+
+      <button
+        id="settingsBtn"
+        class="icon-btn"
+        aria-label="Settings"
+      >
+        ⚙️
+      </button>
+
     </header>
 
+
+    <!-- =========================
+         TODAY
+    ========================== -->
+
     <section class="card today-card">
-      <p class="label">TODAY</p>
-      <div class="total" id="todayTotal">0</div>
-      <p class="subtext">push-ups</p>
+
+      <p class="label">
+        TODAY
+      </p>
+
+      <div
+        class="total"
+        id="todayTotal"
+      >
+        0
+      </div>
+
+      <p class="subtext">
+        push-ups
+      </p>
+
+
+      <!-- DAILY GOAL -->
 
       <div class="progress-wrap">
+
         <div class="progress-label">
-          <span>Daily goal</span>
-          <strong id="goalText">0 / 100</strong>
+
+          <span>
+            Daily goal
+          </span>
+
+          <strong id="goalText">
+            0 / 100
+          </strong>
+
         </div>
-        <div class="progress"><div id="progressBar"></div></div>
+
+        <div class="progress">
+
+          <div id="progressBar"></div>
+
+        </div>
+
       </div>
 
-      <button id="addBtn" class="add-btn">+<span id="addAmount">10</span></button>
+
+      <!-- MAIN ADD BUTTON -->
+
+      <button
+        id="addBtn"
+        class="add-btn"
+      >
+
+        +
+
+        <span id="addAmount">
+          10
+        </span>
+
+      </button>
+
+
+      <!-- QUICK BUTTONS -->
 
       <div class="quick-row">
-        <button class="quick-btn" data-amount="5">+5</button>
-        <button class="quick-btn" data-amount="25">+25</button>
-        <button class="quick-btn" data-amount="50">+50</button>
+
+        <button
+          class="quick-btn"
+          data-amount="5"
+        >
+          +5
+        </button>
+
+        <button
+          class="quick-btn"
+          data-amount="25"
+        >
+          +25
+        </button>
+
+        <button
+          class="quick-btn"
+          data-amount="50"
+        >
+          +50
+        </button>
+
       </div>
 
-      <button id="undoBtn" class="undo-btn">Undo last addition</button>
+
+      <!-- UNDO -->
+
+      <button
+        id="undoBtn"
+        class="undo-btn"
+      >
+        Undo last addition
+      </button>
+
     </section>
 
+
+    <!-- =========================
+         DAILY HISTORY
+    ========================== -->
+
     <section class="card">
+
       <div class="section-title">
-        <h2>History</h2>
-        <button id="clearBtn" class="text-btn">Clear all</button>
+
+        <h2>
+          History
+        </h2>
+
+        <button
+          id="clearBtn"
+          class="text-btn"
+        >
+          Clear all
+        </button>
+
       </div>
-      <div id="history"></div>
+
+      <div id="history">
+
+        <div class="empty">
+          No push-ups logged yet.
+        </div>
+
+      </div>
+
     </section>
 
-    <section class="card">
-  <div class="section-title">
-    <h2>Activity Log</h2>
-    <span class="small-label">WHEN + HOW MANY</span>
-  </div>
 
-  <div id="activityLog"></div>
-</section>
+    <!-- =========================
+         ACTIVITY LOG
+    ========================== -->
+
+    <section class="card">
+
+      <div class="section-title">
+
+        <h2>
+          Activity Log
+        </h2>
+
+        <span class="small-label">
+          WHEN + HOW MANY
+        </span>
+
+      </div>
+
+      <div id="activityLog">
+
+        <div class="empty">
+          No push-ups logged today.
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         STATISTICS
+    ========================== -->
 
     <section class="stats-grid">
-      <div class="stat card"><span>Total</span><strong id="allTime">0</strong></div>
-      <div class="stat card"><span>Average</span><strong id="average">0</strong></div>
-      <div class="stat card"><span>Best day</span><strong id="best">0</strong></div>
-      <div class="stat card"><span>Streak</span><strong id="streak">0 🔥</strong></div>
+
+
+      <div class="stat card">
+
+        <span>
+          Total
+        </span>
+
+        <strong id="allTime">
+          0
+        </strong>
+
+      </div>
+
+
+      <div class="stat card">
+
+        <span>
+          Average
+        </span>
+
+        <strong id="average">
+          0
+        </strong>
+
+      </div>
+
+
+      <div class="stat card">
+
+        <span>
+          Best day
+        </span>
+
+        <strong id="best">
+          0
+        </strong>
+
+      </div>
+
+
+      <div class="stat card">
+
+        <span>
+          Streak
+        </span>
+
+        <strong id="streak">
+          0 🔥
+        </strong>
+
+      </div>
+
+
     </section>
+
   </main>
 
+
+  <!-- =========================
+       SETTINGS
+  ========================== -->
+
   <dialog id="settingsDialog">
+
     <div class="dialog-inner">
+
+
       <div class="section-title">
-        <h2>Settings</h2>
-        <button id="closeSettings" class="icon-btn">✕</button>
+
+        <h2>
+          Settings
+        </h2>
+
+        <button
+          id="closeSettings"
+          class="icon-btn"
+        >
+          ✕
+        </button>
+
       </div>
 
+
+      <!-- DEFAULT AMOUNT -->
+
       <label>
+
         Default amount
-        <input id="defaultAmount" type="number" min="1" step="1" />
+
+        <input
+          id="defaultAmount"
+          type="number"
+          min="1"
+          step="1"
+          value="10"
+        >
+
       </label>
 
-      <p class="small-label">Quick presets</p>
+
+      <!-- QUICK PRESETS -->
+
+      <p class="small-label">
+        Quick presets
+      </p>
+
+
       <div class="preset-grid">
-        <button class="preset" data-preset="10">10</button>
-        <button class="preset" data-preset="15">15</button>
-        <button class="preset" data-preset="20">20</button>
-        <button class="preset" data-preset="25">25</button>
-        <button class="preset" data-preset="50">50</button>
-        <button class="preset" data-preset="100">100</button>
+
+        <button
+          class="preset"
+          data-preset="10"
+        >
+          10
+        </button>
+
+        <button
+          class="preset"
+          data-preset="15"
+        >
+          15
+        </button>
+
+        <button
+          class="preset"
+          data-preset="20"
+        >
+          20
+        </button>
+
+        <button
+          class="preset"
+          data-preset="25"
+        >
+          25
+        </button>
+
+        <button
+          class="preset"
+          data-preset="50"
+        >
+          50
+        </button>
+
+        <button
+          class="preset"
+          data-preset="100"
+        >
+          100
+        </button>
+
       </div>
 
+
+      <!-- DAILY GOAL -->
+
       <label>
+
         Daily goal
-        <input id="dailyGoal" type="number" min="1" step="1" />
+
+        <input
+          id="dailyGoal"
+          type="number"
+          min="1"
+          step="1"
+          value="100"
+        >
+
       </label>
 
-      <button id="saveSettings" class="save-btn">Save settings</button>
+
+      <!-- SAVE -->
+
+      <button
+        id="saveSettings"
+        class="save-btn"
+      >
+        Save settings
+      </button>
+
+
     </div>
+
   </dialog>
 
-  <div id="toast" class="toast"></div>
+
+  <!-- =========================
+       TOAST
+  ========================== -->
+
+  <div
+    id="toast"
+    class="toast"
+  ></div>
+
+
+  <!-- =========================
+       JAVASCRIPT
+  ========================== -->
+
   <script src="app.js"></script>
+
 </body>
+
 </html>
