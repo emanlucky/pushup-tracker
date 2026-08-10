@@ -1,445 +1,979 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
   <meta charset="UTF-8">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-  >
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0, viewport-fit=cover"
 
-  <meta
-    name="theme-color"
-    content="#111827"
-  >
+>
 
-  <meta
-    name="apple-mobile-web-app-capable"
-    content="yes"
-  >
+<meta
+name="theme-color"
+content="#111827"
 
-  <meta
-    name="apple-mobile-web-app-status-bar-style"
-    content="black-translucent"
-  >
+>
 
-  <meta
-    name="apple-mobile-web-app-title"
-    content="Push-Up Tracker"
-  >
+<meta
+name="apple-mobile-web-app-capable"
+content="yes"
 
-  <link rel="manifest" href="manifest.json">
+>
 
-  <link rel="icon" href="icon.svg">
+<meta
+name="apple-mobile-web-app-status-bar-style"
+content="black-translucent"
+
+>
+
+<meta
+name="apple-mobile-web-app-title"
+content="Push-Up Tracker"
+
+>
+
+<meta
+name="description"
+content="Track your push-ups, activity, streaks, goals, and progress."
+
+>
 
   <title>Push-Up Tracker</title>
 
-  <link rel="stylesheet" href="style.css">
-</head>
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
 
+</head>
 
 <body>
 
+  <!-- ========================================================
+       APP
+  ========================================================= -->
+
   <main class="app">
 
-    <!-- =========================
-         HEADER
-    ========================== -->
+```
+<!-- ======================================================
+     HEADER
+======================================================= -->
 
-    <header>
+<header>
+
+  <div>
+
+    <p class="eyebrow">
+      DAILY FITNESS
+    </p>
+
+    <h1>
+      Push-Up Tracker
+    </h1>
+
+  </div>
+
+  <button
+    id="settingsBtn"
+    class="icon-btn"
+    aria-label="Open settings"
+    type="button"
+  >
+    ⚙️
+  </button>
+
+</header>
+
+
+<!-- ======================================================
+     HOME SCREEN
+======================================================= -->
+
+<div
+  id="homeScreen"
+  class="app-screen"
+>
+
+
+  <!-- ====================================================
+       TODAY
+  ===================================================== -->
+
+  <section class="card today-card">
+
+    <p class="label">
+      TODAY
+    </p>
+
+    <div
+      class="total"
+      id="todayTotal"
+    >
+      0
+    </div>
+
+    <p class="subtext">
+      push-ups
+    </p>
+
+
+    <!-- DAILY GOAL -->
+
+    <div class="progress-wrap">
+
+      <div class="progress-label">
+
+        <span>
+          Daily goal
+        </span>
+
+        <strong id="goalText">
+          0 / 100
+        </strong>
+
+      </div>
+
+      <div class="progress">
+
+        <div
+          id="progressBar"
+          style="width: 0%"
+        ></div>
+
+      </div>
+
+    </div>
+
+
+    <!-- MAIN ADD BUTTON -->
+
+    <button
+      id="addBtn"
+      class="add-btn"
+      type="button"
+      aria-label="Add push-ups"
+    >
+
+      +
+
+      <span id="addAmount">
+        10
+      </span>
+
+    </button>
+
+
+    <!-- QUICK ADD -->
+
+    <div class="quick-row">
+
+      <button
+        class="quick-btn"
+        data-amount="5"
+        type="button"
+      >
+        +5
+      </button>
+
+      <button
+        class="quick-btn"
+        data-amount="25"
+        type="button"
+      >
+        +25
+      </button>
+
+      <button
+        class="quick-btn"
+        data-amount="50"
+        type="button"
+      >
+        +50
+      </button>
+
+    </div>
+
+
+    <!-- UNDO -->
+
+    <button
+      id="undoBtn"
+      class="undo-btn"
+      type="button"
+    >
+      Undo last addition
+    </button>
+
+  </section>
+
+
+  <!-- ====================================================
+       TODAY'S ACTIVITY
+  ===================================================== -->
+
+  <section class="card">
+
+    <div class="section-title">
+
+      <h2>
+        Activity Log
+      </h2>
+
+      <span class="small-label">
+        WHEN + HOW MANY
+      </span>
+
+    </div>
+
+    <div id="activityLog">
+
+      <div class="empty">
+        No push-ups logged today.
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ====================================================
+       TODAY'S HISTORY
+  ===================================================== -->
+
+  <section class="card">
+
+    <div class="section-title">
+
+      <h2>
+        History
+      </h2>
+
+      <button
+        id="clearBtn"
+        class="text-btn"
+        type="button"
+      >
+        Clear all
+      </button>
+
+    </div>
+
+    <div id="history">
+
+      <div class="empty">
+        No push-ups logged yet.
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ====================================================
+       QUICK STATISTICS
+  ===================================================== -->
+
+  <section class="stats-cards">
+
+    <div class="stat-card">
+
+      <span>
+        Total
+      </span>
+
+      <strong id="allTime">
+        0
+      </strong>
+
+    </div>
+
+
+    <div class="stat-card">
+
+      <span>
+        Average
+      </span>
+
+      <strong id="average">
+        0
+      </strong>
+
+    </div>
+
+
+    <div class="stat-card">
+
+      <span>
+        Best Day
+      </span>
+
+      <strong id="best">
+        0
+      </strong>
+
+    </div>
+
+
+    <div class="stat-card">
+
+      <span>
+        Streak
+      </span>
+
+      <strong id="streak">
+        0 🔥
+      </strong>
+
+    </div>
+
+  </section>
+
+</div>
+
+
+<!-- ======================================================
+     STATISTICS SCREEN
+======================================================= -->
+
+<div
+  id="statsScreen"
+  class="app-screen"
+  hidden
+>
+
+
+  <section class="card">
+
+    <div class="section-title">
 
       <div>
 
         <p class="eyebrow">
-          DAILY FITNESS
+          YOUR PROGRESS
         </p>
 
-        <h1>
-          Push-Up Tracker
-        </h1>
-
-      </div>
-
-      <button
-        id="settingsBtn"
-        class="icon-btn"
-        aria-label="Settings"
-      >
-        ⚙️
-      </button>
-
-    </header>
-
-
-    <!-- =========================
-         TODAY
-    ========================== -->
-
-    <section class="card today-card">
-
-      <p class="label">
-        TODAY
-      </p>
-
-      <div
-        class="total"
-        id="todayTotal"
-      >
-        0
-      </div>
-
-      <p class="subtext">
-        push-ups
-      </p>
-
-
-      <!-- DAILY GOAL -->
-
-      <div class="progress-wrap">
-
-        <div class="progress-label">
-
-          <span>
-            Daily goal
-          </span>
-
-          <strong id="goalText">
-            0 / 100
-          </strong>
-
-        </div>
-
-        <div class="progress">
-
-          <div id="progressBar"></div>
-
-        </div>
-
-      </div>
-
-
-      <!-- MAIN ADD BUTTON -->
-
-      <button
-        id="addBtn"
-        class="add-btn"
-      >
-
-        +
-
-        <span id="addAmount">
-          10
-        </span>
-
-      </button>
-
-
-      <!-- QUICK BUTTONS -->
-
-      <div class="quick-row">
-
-        <button
-          class="quick-btn"
-          data-amount="5"
-        >
-          +5
-        </button>
-
-        <button
-          class="quick-btn"
-          data-amount="25"
-        >
-          +25
-        </button>
-
-        <button
-          class="quick-btn"
-          data-amount="50"
-        >
-          +50
-        </button>
-
-      </div>
-
-
-      <!-- UNDO -->
-
-      <button
-        id="undoBtn"
-        class="undo-btn"
-      >
-        Undo last addition
-      </button>
-
-    </section>
-
-
-    <!-- =========================
-         DAILY HISTORY
-    ========================== -->
-
-    <section class="card">
-
-      <div class="section-title">
-
         <h2>
-          History
+          Statistics
         </h2>
 
-        <button
-          id="clearBtn"
-          class="text-btn"
-        >
-          Clear all
-        </button>
-
       </div>
 
-      <div id="history">
-
-        <div class="empty">
-          No push-ups logged yet.
-        </div>
-
-      </div>
-
-    </section>
+    </div>
 
 
-    <!-- =========================
-         ACTIVITY LOG
-    ========================== -->
+    <div class="stats-cards">
 
-    <section class="card">
-
-      <div class="section-title">
-
-        <h2>
-          Activity Log
-        </h2>
-
-        <span class="small-label">
-          WHEN + HOW MANY
-        </span>
-
-      </div>
-
-      <div id="activityLog">
-
-        <div class="empty">
-          No push-ups logged today.
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- =========================
-         STATISTICS
-    ========================== -->
-
-    <section class="stats-grid">
-
-
-      <div class="stat card">
+      <div class="stat-card">
 
         <span>
-          Total
+          All-Time
         </span>
 
-        <strong id="allTime">
+        <strong id="statsAllTime">
           0
         </strong>
 
       </div>
 
-
-      <div class="stat card">
+      <div class="stat-card">
 
         <span>
           Average
         </span>
 
-        <strong id="average">
+        <strong id="statsAverage">
           0
         </strong>
 
       </div>
 
-
-      <div class="stat card">
+      <div class="stat-card">
 
         <span>
-          Best day
+          Best Day
         </span>
 
-        <strong id="best">
+        <strong id="statsBest">
           0
         </strong>
 
       </div>
 
-
-      <div class="stat card">
+      <div class="stat-card">
 
         <span>
           Streak
         </span>
 
-        <strong id="streak">
+        <strong id="statsStreak">
           0 🔥
         </strong>
 
       </div>
 
+    </div>
 
-    </section>
-
-  </main>
-
-
-  <!-- =========================
-       SETTINGS
-  ========================== -->
-
-  <dialog id="settingsDialog">
-
-    <div class="dialog-inner">
+  </section>
 
 
-      <div class="section-title">
+  <!-- WEEKLY CHART -->
 
-        <h2>
-          Settings
-        </h2>
+  <section class="card">
 
-        <button
-          id="closeSettings"
-          class="icon-btn"
-        >
-          ✕
-        </button>
+    <div class="section-title">
 
-      </div>
+      <h2>
+        Last 7 Days
+      </h2>
 
-
-      <!-- DEFAULT AMOUNT -->
-
-      <label>
-
-        Default amount
-
-        <input
-          id="defaultAmount"
-          type="number"
-          min="1"
-          step="1"
-          value="10"
-        >
-
-      </label>
-
-
-      <!-- QUICK PRESETS -->
-
-      <p class="small-label">
-        Quick presets
-      </p>
-
-
-      <div class="preset-grid">
-
-        <button
-          class="preset"
-          data-preset="10"
-        >
-          10
-        </button>
-
-        <button
-          class="preset"
-          data-preset="15"
-        >
-          15
-        </button>
-
-        <button
-          class="preset"
-          data-preset="20"
-        >
-          20
-        </button>
-
-        <button
-          class="preset"
-          data-preset="25"
-        >
-          25
-        </button>
-
-        <button
-          class="preset"
-          data-preset="50"
-        >
-          50
-        </button>
-
-        <button
-          class="preset"
-          data-preset="100"
-        >
-          100
-        </button>
-
-      </div>
-
-
-      <!-- DAILY GOAL -->
-
-      <label>
-
-        Daily goal
-
-        <input
-          id="dailyGoal"
-          type="number"
-          min="1"
-          step="1"
-          value="100"
-        >
-
-      </label>
-
-
-      <!-- SAVE -->
-
-      <button
-        id="saveSettings"
-        class="save-btn"
-      >
-        Save settings
-      </button>
-
+      <span class="small-label">
+        PUSH-UPS
+      </span>
 
     </div>
 
+    <div
+      id="weeklyChart"
+      class="weekly-chart"
+    ></div>
+
+  </section>
+
+
+  <!-- WORKOUT TYPES -->
+
+  <section class="card">
+
+    <div class="section-title">
+
+      <h2>
+        Push-Up Types
+      </h2>
+
+    </div>
+
+    <div
+      id="pushupTypes"
+      class="type-buttons"
+    >
+
+      <button
+        type="button"
+        data-type="standard"
+        class="selected"
+      >
+        Standard
+      </button>
+
+      <button
+        type="button"
+        data-type="wide"
+      >
+        Wide
+      </button>
+
+      <button
+        type="button"
+        data-type="diamond"
+      >
+        Diamond
+      </button>
+
+      <button
+        type="button"
+        data-type="decline"
+      >
+        Decline
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- REST TIMER -->
+
+  <section class="card">
+
+    <div class="section-title">
+
+      <h2>
+        Rest Timer
+      </h2>
+
+      <span class="small-label">
+        RECOVERY
+      </span>
+
+    </div>
+
+    <div
+      id="restTimer"
+      class="rest-timer"
+    >
+      01:00
+    </div>
+
+    <div class="timer-buttons">
+
+      <button
+        id="startTimer"
+        type="button"
+      >
+        Start
+      </button>
+
+      <button
+        id="resetTimer"
+        type="button"
+      >
+        Reset
+      </button>
+
+    </div>
+
+  </section>
+
+</div>
+
+
+<!-- ======================================================
+     CALENDAR SCREEN
+======================================================= -->
+
+<div
+  id="calendarScreen"
+  class="app-screen"
+  hidden
+>
+
+  <section class="card">
+
+    <div class="calendar-header">
+
+      <button
+        id="previousMonth"
+        type="button"
+        aria-label="Previous month"
+      >
+        ‹
+      </button>
+
+      <strong id="calendarMonth">
+        Month Year
+      </strong>
+
+      <button
+        id="nextMonth"
+        type="button"
+        aria-label="Next month"
+      >
+        ›
+      </button>
+
+    </div>
+
+
+    <div class="calendar-weekdays">
+
+      <span>Sun</span>
+      <span>Mon</span>
+      <span>Tue</span>
+      <span>Wed</span>
+      <span>Thu</span>
+      <span>Fri</span>
+      <span>Sat</span>
+
+    </div>
+
+
+    <div
+      id="calendar"
+      class="calendar-grid"
+    ></div>
+
+  </section>
+
+
+  <!-- SELECTED DAY -->
+
+  <section class="card">
+
+    <div class="section-title">
+
+      <h2 id="selectedDate">
+        Select a day
+      </h2>
+
+      <span
+        id="selectedDateTotal"
+        class="small-label"
+      >
+        0 PUSH-UPS
+      </span>
+
+    </div>
+
+    <div id="selectedDayActivity">
+
+      <div class="empty">
+        Select a day to view activity.
+      </div>
+
+    </div>
+
+  </section>
+
+</div>
+
+
+<!-- ======================================================
+     FULL HISTORY SCREEN
+======================================================= -->
+
+<div
+  id="historyScreen"
+  class="app-screen"
+  hidden
+>
+
+  <section class="card">
+
+    <div class="section-title">
+
+      <div>
+
+        <p class="eyebrow">
+          YOUR WORKOUTS
+        </p>
+
+        <h2>
+          Full History
+        </h2>
+
+      </div>
+
+      <button
+        id="clearHistoryBtn"
+        class="text-btn"
+        type="button"
+      >
+        Clear
+      </button>
+
+    </div>
+
+
+    <div id="fullHistory">
+
+      <div class="empty">
+        No workout history yet.
+      </div>
+
+    </div>
+
+  </section>
+
+</div>
+```
+
+  </main>
+
+  <!-- ========================================================
+       BOTTOM NAVIGATION
+  ========================================================= -->
+
+  <nav
+    id="appNavigation"
+    aria-label="Main navigation"
+  >
+
+```
+<button
+  class="nav-button active"
+  data-screen="homeScreen"
+  type="button"
+>
+
+  🏠
+
+  <span>
+    Home
+  </span>
+
+</button>
+
+
+<button
+  class="nav-button"
+  data-screen="statsScreen"
+  type="button"
+>
+
+  📊
+
+  <span>
+    Stats
+  </span>
+
+</button>
+
+
+<button
+  class="nav-button"
+  data-screen="calendarScreen"
+  type="button"
+>
+
+  📅
+
+  <span>
+    Calendar
+  </span>
+
+</button>
+
+
+<button
+  class="nav-button"
+  data-screen="historyScreen"
+  type="button"
+>
+
+  📋
+
+  <span>
+    History
+  </span>
+
+</button>
+```
+
+  </nav>
+
+  <!-- ========================================================
+       SETTINGS DIALOG
+  ========================================================= -->
+
+  <dialog id="settingsDialog">
+
+```
+<div class="dialog-inner">
+
+
+  <div class="section-title">
+
+    <div>
+
+      <p class="eyebrow">
+        CUSTOMIZE
+      </p>
+
+      <h2>
+        Settings
+      </h2>
+
+    </div>
+
+    <button
+      id="closeSettings"
+      class="icon-btn"
+      type="button"
+      aria-label="Close settings"
+    >
+      ✕
+    </button>
+
+  </div>
+
+
+  <!-- DEFAULT AMOUNT -->
+
+  <label>
+
+    Default amount
+
+    <input
+      id="defaultAmount"
+      type="number"
+      min="1"
+      step="1"
+      value="10"
+    >
+
+  </label>
+
+
+  <!-- QUICK PRESETS -->
+
+  <p class="small-label">
+    Quick presets
+  </p>
+
+
+  <div class="preset-grid">
+
+    <button
+      class="preset"
+      data-preset="10"
+      type="button"
+    >
+      10
+    </button>
+
+    <button
+      class="preset"
+      data-preset="15"
+      type="button"
+    >
+      15
+    </button>
+
+    <button
+      class="preset"
+      data-preset="20"
+      type="button"
+    >
+      20
+    </button>
+
+    <button
+      class="preset"
+      data-preset="25"
+      type="button"
+    >
+      25
+    </button>
+
+    <button
+      class="preset"
+      data-preset="50"
+      type="button"
+    >
+      50
+    </button>
+
+    <button
+      class="preset"
+      data-preset="100"
+      type="button"
+    >
+      100
+    </button>
+
+  </div>
+
+
+  <!-- DAILY GOAL -->
+
+  <label>
+
+    Daily goal
+
+    <input
+      id="dailyGoal"
+      type="number"
+      min="1"
+      step="1"
+      value="100"
+    >
+
+  </label>
+
+
+  <!-- REST TIMER DEFAULT -->
+
+  <label>
+
+    Rest timer (seconds)
+
+    <input
+      id="restTimerSetting"
+      type="number"
+      min="5"
+      step="5"
+      value="60"
+    >
+
+  </label>
+
+
+  <!-- SAVE -->
+
+  <button
+    id="saveSettings"
+    class="save-btn"
+    type="button"
+  >
+    Save settings
+  </button>
+
+
+  <!-- DATA MANAGEMENT -->
+
+  <h3>
+    Data
+  </h3>
+
+
+  <button
+    id="exportData"
+    class="wide-button"
+    type="button"
+  >
+    Export Data
+  </button>
+
+
+  <button
+    id="importData"
+    class="wide-button"
+    type="button"
+  >
+    Import Data
+  </button>
+
+
+  <input
+    id="importFile"
+    type="file"
+    accept=".json,application/json"
+    hidden
+  >
+
+
+  <button
+    id="resetData"
+    class="wide-button danger"
+    type="button"
+  >
+    Reset All Data
+  </button>
+
+</div>
+```
+
   </dialog>
 
-
-  <!-- =========================
+  <!-- ========================================================
        TOAST
-  ========================== -->
+  ========================================================= -->
 
   <div
     id="toast"
     class="toast"
+    role="status"
+    aria-live="polite"
   ></div>
 
-
-  <!-- =========================
+  <!-- ========================================================
        JAVASCRIPT
-  ========================== -->
+  ========================================================= -->
 
   <script src="app.js"></script>
 
