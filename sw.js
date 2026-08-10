@@ -1,4 +1,4 @@
-const CACHE = "pushup-tracker-v2";
+const CACHE = "pushup-tracker-v3";
 
 const FILES = [
   "./",
