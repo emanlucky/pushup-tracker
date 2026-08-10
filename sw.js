@@ -1,4 +1,4 @@
-const CACHE = "pushup-tracker-v1";
+const CACHE = "pushup-tracker-v2";
 const FILES = ["./", "./index.html", "./style.css", "./app.js", "./manifest.json", "./icon.svg"];
 
 self.addEventListener("install", event => {
