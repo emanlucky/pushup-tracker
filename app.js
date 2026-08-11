@@ -2518,3 +2518,90 @@ window.deleteAllData =
 
 window.requestNotifications =
   requestNotifications;
+
+/* ============================================================
+   APP NAVIGATION
+============================================================ */
+
+const navButtons = document.querySelectorAll(".nav-button");
+
+const screens = document.querySelectorAll(".app-screen");
+
+navButtons.forEach(button => {
+
+  button.addEventListener("click", () => {
+
+    const targetScreen = button.dataset.screen;
+
+    if (!targetScreen) return;
+
+
+    /* Hide every screen */
+
+    screens.forEach(screen => {
+
+      screen.hidden = true;
+
+    });
+
+
+    /* Show selected screen */
+
+    const target = document.getElementById(targetScreen);
+
+    if (target) {
+
+      target.hidden = false;
+
+    }
+
+
+    /* Update active navigation button */
+
+    navButtons.forEach(nav => {
+
+      nav.classList.remove("active");
+
+    });
+
+    button.classList.add("active");
+
+
+    /* Render the selected screen */
+
+    if (typeof render === "function") {
+
+      render();
+
+    }
+
+    if (
+      targetScreen === "statsScreen" &&
+      typeof renderStats === "function"
+    ) {
+
+      renderStats();
+
+    }
+
+    if (
+      targetScreen === "calendarScreen" &&
+      typeof renderCalendar === "function"
+    ) {
+
+      renderCalendar();
+
+    }
+
+    if (
+      targetScreen === "historyScreen" &&
+      typeof renderFullHistory === "function"
+    ) {
+
+      renderFullHistory();
+
+    }
+
+  });
+
+});
