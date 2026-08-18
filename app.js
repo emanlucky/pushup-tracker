@@ -1,150 +1,402 @@
-/* ============================================================
+/* =====================================================
    PUSH-UP TRACKER
-   Complete application JavaScript
-============================================================ */
+   Complete application
+===================================================== */
 
 "use strict";
 
 
-/* ============================================================
+/* =====================================================
    STORAGE
-============================================================ */
+===================================================== */
 
-const STORAGE_KEY = "pushupTrackerData_v5";
+const USERS_KEY = "pushupTrackerUsersV1";
+const SESSION_KEY = "pushupTrackerSessionV1";
+
+let currentUser = null;
+let data = null;
 
 
-/* ============================================================
+/* =====================================================
    DEFAULT DATA
-============================================================ */
+===================================================== */
 
-const DEFAULT_DATA = {
-  settings: {
+function createDefaultData() {
+
+  return {
+
     defaultAmount: 10,
+
     dailyGoal: 100,
-    restTimer: 60
-  },
 
-  history: {},
+    dayStart: "00:00",
 
-  activities: [],
+    theme: "dark",
 
-  selectedType: "standard"
-};
+    restDays: {},
+
+    history: {},
+
+    activity: [],
+
+    achievements: {}
+
+  };
+
+}
 
 
-/* ============================================================
-   LOAD DATA
-============================================================ */
+/* =====================================================
+   ELEMENT HELPER
+===================================================== */
 
-function loadData() {
+const $ = id =>
+  document.getElementById(id);
+
+
+/* =====================================================
+   USER SYSTEM
+===================================================== */
+
+function getUsers() {
 
   try {
 
-    const saved = localStorage.getItem(STORAGE_KEY);
+    return JSON.parse(
+      localStorage.getItem(USERS_KEY)
+    ) || {};
 
-    if (!saved) {
-      return structuredClone(DEFAULT_DATA);
-    }
+  } catch {
 
-    const parsed = JSON.parse(saved);
-
-    return {
-      ...structuredClone(DEFAULT_DATA),
-      ...parsed,
-
-      settings: {
-        ...DEFAULT_DATA.settings,
-        ...(parsed.settings || {})
-      },
-
-      history: parsed.history || {},
-
-      activities: Array.isArray(parsed.activities)
-        ? parsed.activities
-        : [],
-
-      selectedType: parsed.selectedType || "standard"
-    };
-
-  } catch (error) {
-
-    console.error("Could not load saved data:", error);
-
-    return structuredClone(DEFAULT_DATA);
+    return {};
 
   }
 
 }
 
 
-let data = loadData();
+function saveUsers(users) {
+
+  localStorage.setItem(
+    USERS_KEY,
+    JSON.stringify(users)
+  );
+
+}
 
 
-/* ============================================================
-   SAVE DATA
-============================================================ */
+function hashPassword(password) {
 
-function saveData() {
+  /*
+    This is NOT cryptographically secure.
+    It is only used to avoid storing the plain
+    password directly.
 
-  try {
+    For a real online login system, use Firebase
+    or Supabase authentication.
+  */
 
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(data)
+  let hash = 0;
+
+  for (let i = 0; i < password.length; i++) {
+
+    hash =
+      ((hash << 5) - hash)
+      + password.charCodeAt(i);
+
+    hash |= 0;
+
+  }
+
+  return String(hash);
+
+}
+
+
+function createAccount() {
+
+  const username =
+    $("loginUsername").value.trim();
+
+  const password =
+    $("loginPassword").value;
+
+  if (username.length < 3) {
+
+    showLoginMessage(
+      "Username must be at least 3 characters."
     );
 
-  } catch (error) {
-
-    console.error("Could not save data:", error);
+    return;
 
   }
 
+  if (password.length < 4) {
+
+    showLoginMessage(
+      "Password must be at least 4 characters."
+    );
+
+    return;
+
+  }
+
+  const users = getUsers();
+
+  const key =
+    username.toLowerCase();
+
+  if (users[key]) {
+
+    showLoginMessage(
+      "That username already exists."
+    );
+
+    return;
+
+  }
+
+  users[key] = {
+
+    username,
+
+    password:
+      hashPassword(password),
+
+    data:
+      createDefaultData()
+
+  };
+
+  saveUsers(users);
+
+  currentUser = key;
+
+  localStorage.setItem(
+    SESSION_KEY,
+    key
+  );
+
+  data =
+    users[key].data;
+
+  showApp();
+
 }
 
 
-/* ============================================================
-   DATE HELPERS
-============================================================ */
+function login() {
 
-function pad(number) {
+  const username =
+    $("loginUsername").value.trim();
 
-  return String(number).padStart(2, "0");
+  const password =
+    $("loginPassword").value;
+
+  const users =
+    getUsers();
+
+  const key =
+    username.toLowerCase();
+
+  if (
+    !users[key] ||
+    users[key].password !== hashPassword(password)
+  ) {
+
+    showLoginMessage(
+      "Incorrect username or password."
+    );
+
+    return;
+
+  }
+
+  currentUser = key;
+
+  data =
+    users[key].data;
+
+  localStorage.setItem(
+    SESSION_KEY,
+    key
+  );
+
+  showApp();
 
 }
 
 
-function todayKey() {
+function logout() {
 
-  const now = new Date();
+  saveCurrentUser();
 
-  return [
-    now.getFullYear(),
-    pad(now.getMonth() + 1),
-    pad(now.getDate())
-  ].join("-");
+  currentUser = null;
+
+  data = null;
+
+  localStorage.removeItem(
+    SESSION_KEY
+  );
+
+  $("appScreen").classList.add("hidden");
+
+  $("loginScreen").classList.remove("hidden");
+
+  $("loginPassword").value = "";
 
 }
 
 
-function dateKey(date) {
+function saveCurrentUser() {
 
-  return [
-    date.getFullYear(),
-    pad(date.getMonth() + 1),
+  if (!currentUser || !data) {
+    return;
+  }
+
+  const users =
+    getUsers();
+
+  if (!users[currentUser]) {
+    return;
+  }
+
+  users[currentUser].data =
+    data;
+
+  saveUsers(users);
+
+}
+
+
+function showLoginMessage(message) {
+
+  $("loginMessage").textContent =
+    message;
+
+}
+
+
+function showApp() {
+
+  $("loginScreen").classList.add("hidden");
+
+  $("appScreen").classList.remove("hidden");
+
+  $("welcomeText").textContent =
+    `Welcome back, ${dataUsername()}`;
+
+  $("accountUsername").textContent =
+    dataUsername();
+
+  applyTheme();
+
+  render();
+
+}
+
+
+function dataUsername() {
+
+  const users =
+    getUsers();
+
+  return users[currentUser]?.username ||
+    currentUser ||
+    "User";
+
+}
+
+
+/* =====================================================
+   DATE FUNCTIONS
+===================================================== */
+
+function pad(num) {
+
+  return String(num).padStart(2, "0");
+
+}
+
+
+function getDayStartMinutes() {
+
+  const parts =
+    (data.dayStart || "00:00")
+      .split(":")
+      .map(Number);
+
+  return (
+    (parts[0] || 0) * 60 +
+    (parts[1] || 0)
+  );
+
+}
+
+
+function getEffectiveDate(date = new Date()) {
+
+  const result =
+    new Date(date);
+
+  const minutes =
+    result.getHours() * 60 +
+    result.getMinutes();
+
+  if (
+    minutes <
+    getDayStartMinutes()
+  ) {
+
+    result.setDate(
+      result.getDate() - 1
+    );
+
+  }
+
+  return result;
+
+}
+
+
+function dateKey(date = new Date()) {
+
+  const d =
+    getEffectiveDate(date);
+
+  return (
+    d.getFullYear() +
+    "-" +
+    pad(d.getMonth() + 1) +
+    "-" +
+    pad(d.getDate())
+  );
+
+}
+
+
+function normalDateKey(date = new Date()) {
+
+  return (
+    date.getFullYear() +
+    "-" +
+    pad(date.getMonth() + 1) +
+    "-" +
     pad(date.getDate())
-  ].join("-");
+  );
 
 }
 
 
-function parseDateKey(key) {
+function parseKey(key) {
 
-  const parts = key.split("-").map(Number);
+  const [year, month, day] =
+    key.split("-").map(Number);
 
   return new Date(
-    parts[0],
-    parts[1] - 1,
-    parts[2]
+    year,
+    month - 1,
+    day
   );
 
 }
@@ -152,135 +404,127 @@ function parseDateKey(key) {
 
 function formatDate(key) {
 
-  const date = parseDateKey(key);
-
-  return date.toLocaleDateString(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric"
-  });
-
-}
-
-
-function formatShortDate(key) {
-
-  const date = parseDateKey(key);
-
-  return date.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric"
-  });
+  return parseKey(key).toLocaleDateString(
+    undefined,
+    {
+      month: "short",
+      day: "numeric",
+      year: "numeric"
+    }
+  );
 
 }
 
 
 function formatTime(timestamp) {
 
-  const date = new Date(timestamp);
-
-  return date.toLocaleTimeString([], {
-    hour: "numeric",
-    minute: "2-digit"
-  });
-
-}
-
-
-function formatFullTimestamp(timestamp) {
-
-  const date = new Date(timestamp);
-
-  return date.toLocaleString([], {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit"
-  });
+  return new Date(timestamp)
+    .toLocaleTimeString(
+      undefined,
+      {
+        hour: "numeric",
+        minute: "2-digit"
+      }
+    );
 
 }
 
 
-/* ============================================================
-   TODAY
-============================================================ */
-
-function getTodayTotal() {
-
-  return Number(data.history[todayKey()] || 0);
-
-}
-
-
-/* ============================================================
-   ADD PUSH-UPS
-============================================================ */
+/* =====================================================
+   PUSH-UP ADDING
+===================================================== */
 
 function addPushups(amount) {
 
-  amount = Number(amount);
+  amount =
+    Number(amount);
 
-  if (!Number.isFinite(amount) || amount <= 0) {
+  if (
+    !Number.isFinite(amount) ||
+    amount <= 0
+  ) {
     return;
   }
 
-  amount = Math.floor(amount);
+  amount =
+    Math.round(amount);
 
-  const key = todayKey();
+  const key =
+    dateKey();
 
   if (!data.history[key]) {
+
     data.history[key] = 0;
+
   }
 
   data.history[key] += amount;
 
+  const entry = {
 
-  /* Activity entry */
+    id:
+      crypto.randomUUID
+      ? crypto.randomUUID()
+      : Date.now() + "-" + Math.random(),
 
-  data.activities.push({
-    id: Date.now() + Math.random(),
-    timestamp: new Date().toISOString(),
-    date: key,
-    amount: amount,
-    type: data.selectedType || "standard"
-  });
+    timestamp:
+      new Date().toISOString(),
 
+    amount,
 
-  saveData();
+    date:
+      key,
+
+    totalAfter:
+      data.history[key]
+
+  };
+
+  data.activity.unshift(entry);
+
+  saveCurrentUser();
+
+  vibrate();
+
+  animateCounter();
 
   render();
 
-  showToast(`+${amount} push-ups`);
+  checkGoalCelebration(key);
+
+  showToast(
+    `+${amount} push-ups`
+  );
 
 }
 
 
-/* ============================================================
-   UNDO
-============================================================ */
+function undoLast() {
 
-function undoLastAddition() {
+  if (!data.activity.length) {
 
-  if (!data.activities.length) {
-
-    showToast("Nothing to undo");
+    showToast(
+      "Nothing to undo."
+    );
 
     return;
 
   }
 
+  const entry =
+    data.activity[0];
 
-  const activity = data.activities[data.activities.length - 1];
-
-  const key = activity.date;
+  const key =
+    entry.date;
 
   if (data.history[key]) {
 
-    data.history[key] -= Number(activity.amount);
+    data.history[key] -=
+      entry.amount;
 
-    if (data.history[key] <= 0) {
+    if (
+      data.history[key] <= 0
+    ) {
 
       delete data.history[key];
 
@@ -288,481 +532,626 @@ function undoLastAddition() {
 
   }
 
+  data.activity.shift();
 
-  data.activities.pop();
-
-  saveData();
+  saveCurrentUser();
 
   render();
 
-  showToast("Last addition undone");
+  showToast(
+    `Removed ${entry.amount} push-ups`
+  );
 
 }
 
 
-/* ============================================================
-   RENDER EVERYTHING
-============================================================ */
+/* =====================================================
+   DELETE ACTIVITY
+===================================================== */
+
+function deleteActivity(id) {
+
+  const index =
+    data.activity.findIndex(
+      item => item.id === id
+    );
+
+  if (index === -1) {
+    return;
+  }
+
+  const entry =
+    data.activity[index];
+
+  if (
+    !confirm(
+      `Delete +${entry.amount} push-ups from ${formatTime(entry.timestamp)}?`
+    )
+  ) {
+    return;
+  }
+
+  if (data.history[entry.date]) {
+
+    data.history[entry.date] -=
+      entry.amount;
+
+    if (
+      data.history[entry.date] <= 0
+    ) {
+
+      delete data.history[entry.date];
+
+    }
+
+  }
+
+  data.activity.splice(
+    index,
+    1
+  );
+
+  saveCurrentUser();
+
+  render();
+
+  showToast(
+    "Activity deleted."
+  );
+
+}
+
+
+/* =====================================================
+   RENDER
+===================================================== */
 
 function render() {
+
+  if (!data) {
+    return;
+  }
 
   renderHome();
 
   renderHistory();
 
-  renderActivityLog();
+  renderActivity();
 
   renderStats();
 
   renderCalendar();
 
-  renderFullHistory();
-
-  renderSelectedDay();
+  renderAchievements();
 
   updateSettingsUI();
 
 }
 
 
-/* ============================================================
+/* =====================================================
    HOME
-============================================================ */
+===================================================== */
 
 function renderHome() {
 
-  const total = getTodayTotal();
+  const today =
+    data.history[dateKey()] || 0;
 
-  const totalElement =
-    document.getElementById("todayTotal");
+  $("todayTotal").textContent =
+    today.toLocaleString();
 
-  const amountElement =
-    document.getElementById("addAmount");
-
-  const goalText =
-    document.getElementById("goalText");
-
-  const progressBar =
-    document.getElementById("progressBar");
-
-
-  if (totalElement) {
-
-    totalElement.textContent =
-      total.toLocaleString();
-
-  }
-
-
-  if (amountElement) {
-
-    amountElement.textContent =
-      Number(data.settings.defaultAmount);
-
-  }
-
+  $("addAmount").textContent =
+    data.defaultAmount;
 
   const goal =
     Math.max(
       1,
-      Number(data.settings.dailyGoal) || 100
+      Number(data.dailyGoal) || 100
     );
 
+  $("goalText").textContent =
+    `${today.toLocaleString()} / ${goal.toLocaleString()}`;
 
-  if (goalText) {
+  const percent =
+    Math.min(
+      100,
+      (today / goal) * 100
+    );
 
-    goalText.textContent =
-      `${total.toLocaleString()} / ${goal.toLocaleString()}`;
+  $("progressBar").style.width =
+    `${percent}%`;
 
-  }
-
-
-  if (progressBar) {
-
-    const percentage =
-      Math.min(
-        100,
-        (total / goal) * 100
-      );
-
-    progressBar.style.width =
-      `${percentage}%`;
-
-  }
+  $("restDay").checked =
+    !!data.restDays[dateKey()];
 
 }
 
 
-/* ============================================================
-   HISTORY
-============================================================ */
+/* =====================================================
+   ACTIVITY RENDER
+===================================================== */
 
-function renderHistory() {
+function renderActivity(
+  targetId = "activityLog",
+  filterDate = null
+) {
 
-  const historyElement =
-    document.getElementById("history");
+  const container =
+    $(targetId);
 
-  if (!historyElement) {
+  if (!container) {
     return;
   }
 
+  let entries =
+    [...data.activity];
 
-  const entries =
-    Object.entries(data.history)
-      .filter(([, count]) => Number(count) > 0)
-      .sort(([a], [b]) => b.localeCompare(a));
+  if (filterDate) {
 
+    entries =
+      entries.filter(
+        entry =>
+          entry.date === filterDate
+      );
+
+  }
 
   if (!entries.length) {
 
-    historyElement.innerHTML = `
-      <div class="empty">
-        No push-ups logged yet.
-      </div>
-    `;
+    container.innerHTML =
+      `<div class="empty">
+        No push-ups logged.
+      </div>`;
 
     return;
 
   }
 
+  container.innerHTML =
+    entries.map(
+      entry => {
 
-  historyElement.innerHTML =
-    entries
-      .slice(0, 30)
-      .map(([date, count]) => {
-
-        return `
-          <div class="history-row">
-
-            <span class="history-date">
-              ${formatDate(date)}
-            </span>
-
-            <span class="history-count">
-              ${Number(count).toLocaleString()}
-            </span>
-
-          </div>
-        `;
-
-      })
-      .join("");
-
-}
-
-
-/* ============================================================
-   ACTIVITY LOG
-============================================================ */
-
-function renderActivityLog() {
-
-  const activityElement =
-    document.getElementById("activityLog");
-
-  if (!activityElement) {
-    return;
-  }
-
-
-  const today =
-    todayKey();
-
-
-  const activities =
-    data.activities
-      .filter(activity => activity.date === today)
-      .sort(
-        (a, b) =>
-          new Date(b.timestamp) -
-          new Date(a.timestamp)
-      );
-
-
-  if (!activities.length) {
-
-    activityElement.innerHTML = `
-      <div class="empty">
-        No push-ups logged today.
-      </div>
-    `;
-
-    return;
-
-  }
-
-
-  activityElement.innerHTML =
-    activities
-      .map(activity => {
-
-        const type =
-          capitalize(activity.type || "standard");
-
+        const running =
+          entry.totalAfter;
 
         return `
           <div class="activity-row">
 
-            <div class="activity-info">
+            <div class="activity-left">
 
-              <strong>
-                +${Number(activity.amount).toLocaleString()}
-              </strong>
+              <div class="activity-amount">
+                +${Number(entry.amount).toLocaleString()} push-ups
+              </div>
 
-              <span>
-                ${type} push-ups
-              </span>
+              <div class="activity-time">
+                ${formatDate(entry.date)}
+                •
+                ${formatTime(entry.timestamp)}
+              </div>
+
+              <div class="activity-running">
+                Running total: ${Number(running).toLocaleString()}
+              </div>
 
             </div>
 
-            <div class="activity-time">
-              ${formatTime(activity.timestamp)}
-            </div>
+            <button
+              class="delete-activity"
+              data-delete-id="${entry.id}"
+              aria-label="Delete activity"
+            >
+              🗑️
+            </button>
 
           </div>
         `;
 
-      })
-      .join("");
+      }
+    ).join("");
 
 }
 
 
-/* ============================================================
-   STATISTICS
-============================================================ */
+function renderTodayActivity() {
 
-function getAllTimeTotal() {
-
-  return Object.values(data.history)
-    .reduce(
-      (sum, value) =>
-        sum + Number(value || 0),
-      0
-    );
-
-}
-
-
-function getAverage() {
-
-  const values =
-    Object.values(data.history)
-      .map(Number)
-      .filter(value => value > 0);
-
-
-  if (!values.length) {
-    return 0;
-  }
-
-
-  return Math.round(
-    values.reduce(
-      (sum, value) => sum + value,
-      0
-    ) / values.length
+  renderActivity(
+    "todayActivityLog",
+    dateKey()
   );
 
 }
 
 
-function getBestDay() {
+/* =====================================================
+   HISTORY
+===================================================== */
 
-  const values =
-    Object.values(data.history)
-      .map(Number);
+function renderHistory() {
 
+  const entries =
+    Object.entries(
+      data.history
+    )
+      .sort(
+        ([a], [b]) =>
+          b.localeCompare(a)
+      );
 
-  if (!values.length) {
-    return 0;
+  const container =
+    $("history");
+
+  if (!entries.length) {
+
+    container.innerHTML =
+      `<div class="empty">
+        No push-ups logged yet.
+      </div>`;
+
+    return;
+
   }
 
+  container.innerHTML =
+    entries
+      .slice(0, 100)
+      .map(
+        ([date, count]) => {
 
-  return Math.max(...values);
+          const goal =
+            Number(data.dailyGoal) || 100;
+
+          const percent =
+            Math.min(
+              100,
+              (Number(count) / goal) * 100
+            );
+
+          return `
+            <div class="history-row">
+
+              <span class="history-date">
+                ${formatDate(date)}
+              </span>
+
+              <span class="history-count">
+                ${Number(count).toLocaleString()}
+              </span>
+
+            </div>
+          `;
+
+        }
+      )
+      .join("");
 
 }
 
 
-function getStreak() {
+/* =====================================================
+   STATS
+===================================================== */
+
+function getAllTimeTotal() {
+
+  return Object.values(
+    data.history
+  ).reduce(
+    (sum, value) =>
+      sum + Number(value),
+    0
+  );
+
+}
+
+
+function getDateDifference(a, b) {
+
+  const one =
+    parseKey(a);
+
+  const two =
+    parseKey(b);
+
+  return Math.round(
+    (
+      two - one
+    ) /
+    86400000
+  );
+
+}
+
+
+function calculateCurrentStreak() {
+
+  const keys =
+    Object.keys(data.history)
+      .filter(
+        key =>
+          Number(data.history[key]) > 0
+      )
+      .sort();
+
+  if (!keys.length) {
+    return 0;
+  }
 
   let streak = 0;
 
-  const current = new Date();
-
-  const today = todayKey();
-
-
-  /*
-    If today has no workout, allow the streak to
-    begin yesterday.
-  */
-
-  if (!data.history[today]) {
-
-    current.setDate(
-      current.getDate() - 1
-    );
-
-  }
-
+  let current =
+    getEffectiveDate();
 
   while (true) {
 
-    const key = dateKey(current);
+    const key =
+      normalDateKey(current);
 
-    if (!data.history[key]) {
+    if (
+      data.history[key] > 0 ||
+      data.restDays[key]
+    ) {
+
+      streak++;
+
+      current.setDate(
+        current.getDate() - 1
+      );
+
+    } else {
+
       break;
+
     }
 
-    streak++;
-
-    current.setDate(
-      current.getDate() - 1
-    );
-
   }
-
 
   return streak;
 
 }
 
 
+function calculateLongestStreak() {
+
+  const keys =
+    Object.keys(data.history)
+      .filter(
+        key =>
+          Number(data.history[key]) > 0 ||
+          data.restDays[key]
+      )
+      .sort();
+
+  if (!keys.length) {
+    return 0;
+  }
+
+  let longest = 1;
+  let current = 1;
+
+  for (
+    let i = 1;
+    i < keys.length;
+    i++
+  ) {
+
+    if (
+      getDateDifference(
+        keys[i - 1],
+        keys[i]
+      ) === 1
+    ) {
+
+      current++;
+
+      longest =
+        Math.max(
+          longest,
+          current
+        );
+
+    } else {
+
+      current = 1;
+
+    }
+
+  }
+
+  return longest;
+
+}
+
+
+function getWeekDates() {
+
+  const today =
+    getEffectiveDate();
+
+  const day =
+    today.getDay();
+
+  const sunday =
+    new Date(today);
+
+  sunday.setDate(
+    today.getDate() - day
+  );
+
+  const dates = [];
+
+  for (
+    let i = 0;
+    i < 7;
+    i++
+  ) {
+
+    const date =
+      new Date(sunday);
+
+    date.setDate(
+      sunday.getDate() + i
+    );
+
+    dates.push(date);
+
+  }
+
+  return dates;
+
+}
+
+
+function getMonthTotal() {
+
+  const today =
+    getEffectiveDate();
+
+  const year =
+    today.getFullYear();
+
+  const month =
+    today.getMonth();
+
+  return Object.entries(
+    data.history
+  )
+    .filter(
+      ([key]) => {
+
+        const d =
+          parseKey(key);
+
+        return (
+          d.getFullYear() === year &&
+          d.getMonth() === month
+        );
+
+      }
+    )
+    .reduce(
+      (sum, [, value]) =>
+        sum + Number(value),
+      0
+    );
+
+}
+
+
 function renderStats() {
 
-  const total =
+  const allTime =
     getAllTimeTotal();
 
+  const days =
+    Object.values(
+      data.history
+    ).filter(
+      value =>
+        Number(value) > 0
+    );
+
   const average =
-    getAverage();
+    days.length
+      ? Math.round(
+          allTime / days.length
+        )
+      : 0;
 
   const best =
-    getBestDay();
+    days.length
+      ? Math.max(
+          ...days.map(Number)
+        )
+      : 0;
 
-  const streak =
-    getStreak();
+  const weekTotal =
+    getWeekDates()
+      .reduce(
+        (sum, date) =>
+          sum +
+          Number(
+            data.history[
+              normalDateKey(date)
+            ] || 0
+          ),
+        0
+      );
 
+  $("allTime").textContent =
+    allTime.toLocaleString();
 
-  setText(
-    "allTime",
-    total.toLocaleString()
-  );
+  $("average").textContent =
+    average.toLocaleString();
 
-  setText(
-    "average",
-    average.toLocaleString()
-  );
+  $("best").textContent =
+    best.toLocaleString();
 
-  setText(
-    "best",
-    best.toLocaleString()
-  );
+  $("weekTotal").textContent =
+    weekTotal.toLocaleString();
 
-  setText(
-    "streak",
-    `${streak} 🔥`
-  );
+  $("monthTotal").textContent =
+    getMonthTotal().toLocaleString();
 
+  $("streak").textContent =
+    `${calculateCurrentStreak()} 🔥`;
 
-  setText(
-    "statsAllTime",
-    total.toLocaleString()
-  );
-
-  setText(
-    "statsAverage",
-    average.toLocaleString()
-  );
-
-  setText(
-    "statsBest",
-    best.toLocaleString()
-  );
-
-  setText(
-    "statsStreak",
-    `${streak} 🔥`
-  );
-
+  $("longestStreak").textContent =
+    `${calculateLongestStreak()} 🔥`;
 
   renderWeeklyChart();
 
 }
 
 
-/* ============================================================
+/* =====================================================
    WEEKLY CHART
-============================================================ */
+===================================================== */
 
 function renderWeeklyChart() {
 
-  const chart =
-    document.getElementById("weeklyChart");
+  const dates =
+    getWeekDates();
 
-  if (!chart) {
-    return;
-  }
-
-
-  const days = [];
-
-
-  for (let i = 6; i >= 0; i--) {
-
-    const date = new Date();
-
-    date.setHours(0, 0, 0, 0);
-
-    date.setDate(
-      date.getDate() - i
+  const values =
+    dates.map(
+      date =>
+        Number(
+          data.history[
+            normalDateKey(date)
+          ] || 0
+        )
     );
-
-
-    const key =
-      dateKey(date);
-
-
-    days.push({
-      key,
-      label:
-        date.toLocaleDateString(
-          undefined,
-          { weekday: "short" }
-        ),
-      value:
-        Number(data.history[key] || 0)
-    });
-
-  }
-
 
   const max =
     Math.max(
-      ...days.map(day => day.value),
-      1
+      1,
+      ...values
     );
 
+  $("weeklyChart").innerHTML =
+    dates.map(
+      (date, index) => {
 
-  chart.innerHTML =
-    days
-      .map(day => {
+        const value =
+          values[index];
 
         const height =
-          Math.max(
-            4,
-            (day.value / max) * 100
-          );
-
+          value
+            ? Math.max(
+                3,
+                (value / max) * 100
+              )
+            : 2;
 
         return `
           <div class="chart-column">
 
-            <div class="chart-value">
-              ${day.value || ""}
-            </div>
+            <span class="chart-value">
+              ${value ? value.toLocaleString() : ""}
+            </span>
 
-            <div class="chart-bar-wrap">
+            <div class="chart-bar-container">
 
               <div
                 class="chart-bar"
@@ -771,39 +1160,31 @@ function renderWeeklyChart() {
 
             </div>
 
-            <span>
-              ${day.label}
+            <span class="chart-day">
+              ${date.toLocaleDateString(
+                undefined,
+                { weekday: "short" }
+              ).slice(0, 1)}
             </span>
 
           </div>
         `;
 
-      })
-      .join("");
+      }
+    ).join("");
 
 }
 
 
-/* ============================================================
+/* =====================================================
    CALENDAR
-============================================================ */
+===================================================== */
 
-let calendarDate = new Date();
+let calendarDate =
+  new Date();
 
 
 function renderCalendar() {
-
-  const calendar =
-    document.getElementById("calendar");
-
-  const monthLabel =
-    document.getElementById("calendarMonth");
-
-
-  if (!calendar || !monthLabel) {
-    return;
-  }
-
 
   const year =
     calendarDate.getFullYear();
@@ -811,8 +1192,7 @@ function renderCalendar() {
   const month =
     calendarDate.getMonth();
 
-
-  monthLabel.textContent =
+  $("calendarTitle").textContent =
     calendarDate.toLocaleDateString(
       undefined,
       {
@@ -821,14 +1201,12 @@ function renderCalendar() {
       }
     );
 
-
   const firstDay =
     new Date(
       year,
       month,
       1
     ).getDay();
-
 
   const daysInMonth =
     new Date(
@@ -837,46 +1215,58 @@ function renderCalendar() {
       0
     ).getDate();
 
+  const container =
+    $("calendar");
 
   let html = "";
 
+  for (
+    let i = 0;
+    i < firstDay;
+    i++
+  ) {
 
-  for (let i = 0; i < firstDay; i++) {
-
-    html += `
-      <div class="calendar-day blank"></div>
-    `;
+    html +=
+      `<div class="calendar-day empty-day"></div>`;
 
   }
 
-
-  for (let day = 1; day <= daysInMonth; day++) {
+  for (
+    let day = 1;
+    day <= daysInMonth;
+    day++
+  ) {
 
     const key =
-      dateKey(
-        new Date(
-          year,
-          month,
-          day
-        )
-      );
-
+      `${year}-${pad(month + 1)}-${pad(day)}`;
 
     const count =
-      Number(data.history[key] || 0);
-
+      Number(
+        data.history[key] || 0
+      );
 
     const today =
-      key === todayKey();
+      key === dateKey();
 
+    let status = "";
+
+    if (
+      count >=
+      Number(data.dailyGoal)
+    ) {
+
+      status = "completed";
+
+    } else if (count > 0) {
+
+      status = "partial";
+
+    }
 
     html += `
       <button
-        type="button"
-        class="calendar-day
-          ${count > 0 ? "has-workout" : ""}
-          ${today ? "today" : ""}"
-        data-date="${key}"
+        class="calendar-day ${status} ${today ? "today" : ""}"
+        data-calendar-date="${key}"
       >
 
         <span>
@@ -884,8 +1274,8 @@ function renderCalendar() {
         </span>
 
         ${
-          count > 0
-            ? `<small>${count}</small>`
+          count
+            ? `<span class="calendar-count">${count}</span>`
             : ""
         }
 
@@ -894,656 +1284,522 @@ function renderCalendar() {
 
   }
 
-
-  calendar.innerHTML = html;
-
-
-  calendar
-    .querySelectorAll(
-      ".calendar-day[data-date]"
-    )
-    .forEach(button => {
-
-      button.addEventListener(
-        "click",
-        () => {
-
-          selectedCalendarDate =
-            button.dataset.date;
-
-          renderCalendar();
-
-          renderSelectedDay();
-
-        }
-      );
-
-    });
+  container.innerHTML =
+    html;
 
 }
 
 
-/* ============================================================
-   SELECTED CALENDAR DAY
-============================================================ */
-
-let selectedCalendarDate = todayKey();
-
-
-function renderSelectedDay() {
-
-  const title =
-    document.getElementById("selectedDate");
-
-  const total =
-    document.getElementById("selectedDateTotal");
-
-  const activity =
-    document.getElementById("selectedDayActivity");
-
-
-  if (!title || !total || !activity) {
-    return;
-  }
-
-
-  const key =
-    selectedCalendarDate;
-
-
-  title.textContent =
-    formatDate(key);
-
+function showCalendarDay(key) {
 
   const count =
-    Number(data.history[key] || 0);
-
-
-  total.textContent =
-    `${count.toLocaleString()} PUSH-UPS`;
-
-
-  const activities =
-    data.activities
-      .filter(item => item.date === key)
-      .sort(
-        (a, b) =>
-          new Date(b.timestamp) -
-          new Date(a.timestamp)
-      );
-
-
-  if (!activities.length) {
-
-    activity.innerHTML = `
-      <div class="empty">
-        No activity logged on this day.
-      </div>
-    `;
-
-    return;
-
-  }
-
-
-  activity.innerHTML =
-    activities
-      .map(item => {
-
-        return `
-          <div class="activity-row">
-
-            <div class="activity-info">
-
-              <strong>
-                +${Number(item.amount).toLocaleString()}
-              </strong>
-
-              <span>
-                ${capitalize(item.type || "standard")}
-              </span>
-
-            </div>
-
-            <div class="activity-time">
-              ${formatTime(item.timestamp)}
-            </div>
-
-          </div>
-        `;
-
-      })
-      .join("");
-
-}
-
-
-/* ============================================================
-   FULL HISTORY
-============================================================ */
-
-function renderFullHistory() {
-
-  const element =
-    document.getElementById("fullHistory");
-
-  if (!element) {
-    return;
-  }
-
-
-  const entries =
-    Object.entries(data.history)
-      .filter(([, value]) => Number(value) > 0)
-      .sort(([a], [b]) => b.localeCompare(a));
-
-
-  if (!entries.length) {
-
-    element.innerHTML = `
-      <div class="empty">
-        No workout history yet.
-      </div>
-    `;
-
-    return;
-
-  }
-
-
-  element.innerHTML =
-    entries
-      .map(([date, count]) => {
-
-        const dayActivities =
-          data.activities.filter(
-            activity =>
-              activity.date === date
-          );
-
-
-        return `
-          <div class="full-history-day">
-
-            <div class="history-row">
-
-              <span class="history-date">
-                ${formatDate(date)}
-              </span>
-
-              <strong>
-                ${Number(count).toLocaleString()}
-              </strong>
-
-            </div>
-
-            ${
-              dayActivities.length
-                ? `
-                  <div class="history-activities">
-
-                    ${dayActivities
-                      .sort(
-                        (a, b) =>
-                          new Date(a.timestamp) -
-                          new Date(b.timestamp)
-                      )
-                      .map(activity => `
-                        <span>
-                          +${Number(activity.amount)}
-                          · ${formatTime(activity.timestamp)}
-                        </span>
-                      `)
-                      .join("")}
-
-                  </div>
-                `
-                : ""
-            }
-
-          </div>
-        `;
-
-      })
-      .join("");
-
-}
-
-
-/* ============================================================
-   SETTINGS
-============================================================ */
-
-function updateSettingsUI() {
-
-  const defaultAmount =
-    document.getElementById("defaultAmount");
-
-  const dailyGoal =
-    document.getElementById("dailyGoal");
-
-  const restTimer =
-    document.getElementById("restTimerSetting");
-
-
-  if (defaultAmount) {
-
-    defaultAmount.value =
-      data.settings.defaultAmount;
-
-  }
-
-
-  if (dailyGoal) {
-
-    dailyGoal.value =
-      data.settings.dailyGoal;
-
-  }
-
-
-  if (restTimer) {
-
-    restTimer.value =
-      data.settings.restTimer;
-
-  }
-
-
-  document
-    .querySelectorAll(".preset")
-    .forEach(button => {
-
-      button.classList.toggle(
-        "selected",
-        Number(button.dataset.preset) ===
-        Number(data.settings.defaultAmount)
-      );
-
-    });
-
-
-  document
-    .querySelectorAll(
-      "#pushupTypes button"
-    )
-    .forEach(button => {
-
-      button.classList.toggle(
-        "selected",
-        button.dataset.type ===
-        data.selectedType
-      );
-
-    });
-
-}
-
-
-/* ============================================================
-   SETTINGS DIALOG
-============================================================ */
-
-function openSettings() {
-
-  const dialog =
-    document.getElementById(
-      "settingsDialog"
-    );
-
-
-  if (!dialog) {
-    return;
-  }
-
-
-  updateSettingsUI();
-
-  dialog.showModal();
-
-}
-
-
-function closeSettings() {
-
-  const dialog =
-    document.getElementById(
-      "settingsDialog"
-    );
-
-
-  if (!dialog) {
-    return;
-  }
-
-
-  dialog.close();
-
-}
-
-
-/* ============================================================
-   SAVE SETTINGS
-============================================================ */
-
-function saveSettings() {
-
-  const defaultAmount =
     Number(
-      document.getElementById(
-        "defaultAmount"
-      )?.value
+      data.history[key] || 0
     );
 
+  $("selectedDayCard")
+    .classList.remove("hidden");
 
-  const dailyGoal =
-    Number(
-      document.getElementById(
-        "dailyGoal"
-      )?.value
-    );
+  $("selectedDayTitle").textContent =
+    formatDate(key);
 
+  $("selectedDayTotal").textContent =
+    `${count.toLocaleString()} push-ups`;
 
-  const restTimer =
-    Number(
-      document.getElementById(
-        "restTimerSetting"
-      )?.value
-    );
-
-
-  if (
-    !Number.isFinite(defaultAmount) ||
-    defaultAmount < 1
-  ) {
-
-    showToast(
-      "Enter a valid default amount"
-    );
-
-    return;
-
-  }
-
-
-  if (
-    !Number.isFinite(dailyGoal) ||
-    dailyGoal < 1
-  ) {
-
-    showToast(
-      "Enter a valid daily goal"
-    );
-
-    return;
-
-  }
-
-
-  if (
-    !Number.isFinite(restTimer) ||
-    restTimer < 5
-  ) {
-
-    showToast(
-      "Rest timer must be at least 5 seconds"
-    );
-
-    return;
-
-  }
-
-
-  data.settings.defaultAmount =
-    Math.floor(defaultAmount);
-
-  data.settings.dailyGoal =
-    Math.floor(dailyGoal);
-
-  data.settings.restTimer =
-    Math.floor(restTimer);
-
-
-  saveData();
-
-  render();
-
-  closeSettings();
-
-  showToast("Settings saved");
-
-}
-
-
-/* ============================================================
-   PRESETS
-============================================================ */
-
-function selectPreset(amount) {
-
-  amount = Number(amount);
-
-  if (!Number.isFinite(amount) || amount < 1) {
-    return;
-  }
-
-
-  data.settings.defaultAmount =
-    Math.floor(amount);
-
-
-  const input =
-    document.getElementById(
-      "defaultAmount"
-    );
-
-
-  if (input) {
-    input.value =
-      data.settings.defaultAmount;
-  }
-
-
-  updateSettingsUI();
-
-}
-
-
-/* ============================================================
-   PUSH-UP TYPES
-============================================================ */
-
-function selectPushupType(type) {
-
-  if (!type) {
-    return;
-  }
-
-
-  data.selectedType = type;
-
-  saveData();
-
-  updateSettingsUI();
-
-  showToast(
-    `${capitalize(type)} push-ups selected`
+  renderActivity(
+    "selectedDayActivity",
+    key
   );
 
 }
 
 
-/* ============================================================
-   REST TIMER
-============================================================ */
+/* =====================================================
+   ACHIEVEMENTS
+===================================================== */
 
-let timerInterval = null;
+const ACHIEVEMENT_LIST = [
 
-let timerRemaining = 60;
+  {
+    id: "first100",
+    icon: "🟢",
+    name: "First 100",
+    description: "Complete 100 total push-ups.",
+    check: total => total >= 100
+  },
 
+  {
+    id: "fiveHundred",
+    icon: "🔵",
+    name: "500 Club",
+    description: "Reach 500 total push-ups.",
+    check: total => total >= 500
+  },
 
-function updateTimerDisplay() {
+  {
+    id: "oneThousand",
+    icon: "🟣",
+    name: "1,000 Club",
+    description: "Reach 1,000 total push-ups.",
+    check: total => total >= 1000
+  },
 
-  const element =
-    document.getElementById(
-      "restTimer"
-    );
+  {
+    id: "sevenDay",
+    icon: "🔥",
+    name: "7 Day Warrior",
+    description: "Reach a 7-day streak.",
+    check: (total, streak) => streak >= 7
+  },
 
+  {
+    id: "tenThousand",
+    icon: "💪",
+    name: "10K Push-Ups",
+    description: "Reach 10,000 total push-ups.",
+    check: total => total >= 10000
+  },
 
-  if (!element) {
-    return;
+  {
+    id: "hundredThousand",
+    icon: "👑",
+    name: "100K Push-Ups",
+    description: "Reach 100,000 total push-ups.",
+    check: total => total >= 100000
+  },
+
+  {
+    id: "best500",
+    icon: "🏆",
+    name: "500 Day",
+    description: "Complete 500 push-ups in one day.",
+    check: (total, streak, best) => best >= 500
+  },
+
+  {
+    id: "thirtyDay",
+    icon: "⚡",
+    name: "30 Day Warrior",
+    description: "Reach a 30-day streak.",
+    check: (total, streak, best, longest) =>
+      longest >= 30
   }
 
+];
 
-  const minutes =
-    Math.floor(
-      timerRemaining / 60
+
+function getUnlockedAchievements() {
+
+  const total =
+    getAllTimeTotal();
+
+  const current =
+    calculateCurrentStreak();
+
+  const longest =
+    calculateLongestStreak();
+
+  const best =
+    Object.values(
+      data.history
+    ).reduce(
+      (max, value) =>
+        Math.max(
+          max,
+          Number(value)
+        ),
+      0
     );
 
+  const unlocked = {};
 
-  const seconds =
-    timerRemaining % 60;
+  ACHIEVEMENT_LIST.forEach(
+    achievement => {
 
+      unlocked[achievement.id] =
+        achievement.check(
+          total,
+          current,
+          best,
+          longest
+        );
 
-  element.textContent =
-    `${pad(minutes)}:${pad(seconds)}`;
+    }
+  );
+
+  return unlocked;
 
 }
 
 
-function startTimer() {
+function renderAchievements() {
 
-  if (timerInterval) {
-    return;
-  }
+  const unlocked =
+    getUnlockedAchievements();
 
+  const count =
+    Object.values(unlocked)
+      .filter(Boolean)
+      .length;
+
+  $("achievementCount").textContent =
+    `${count}/${ACHIEVEMENT_LIST.length}`;
+
+  $("achievements").innerHTML =
+    ACHIEVEMENT_LIST.map(
+      achievement => {
+
+        const isUnlocked =
+          unlocked[achievement.id];
+
+        return `
+          <div
+            class="achievement ${isUnlocked ? "unlocked" : ""}"
+          >
+
+            <div class="achievement-icon">
+              ${achievement.icon}
+            </div>
+
+            <div class="achievement-name">
+              ${achievement.name}
+            </div>
+
+            <div class="achievement-description">
+              ${achievement.description}
+            </div>
+
+          </div>
+        `;
+
+      }
+    ).join("");
+
+}
+
+
+/* =====================================================
+   GOAL CELEBRATION
+===================================================== */
+
+function checkGoalCelebration(key) {
+
+  const goal =
+    Number(data.dailyGoal) || 100;
+
+  const total =
+    Number(data.history[key] || 0);
 
   if (
-    timerRemaining <= 0
+    total >= goal &&
+    !data.achievements[
+      `goal-${key}`
+    ]
   ) {
 
-    timerRemaining =
-      Number(data.settings.restTimer) || 60;
+    data.achievements[
+      `goal-${key}`
+    ] = true;
+
+    saveCurrentUser();
+
+    $("celebration")
+      .classList.remove("hidden");
 
   }
 
-
-  timerInterval =
-    setInterval(() => {
-
-      timerRemaining--;
-
-      updateTimerDisplay();
+}
 
 
-      if (timerRemaining <= 0) {
+/* =====================================================
+   SETTINGS
+===================================================== */
 
-        stopTimer();
+function updateSettingsUI() {
 
-        showToast("Rest complete!");
+  $("defaultAmount").value =
+    data.defaultAmount;
+
+  $("dailyGoal").value =
+    data.dailyGoal;
+
+  $("dayStart").value =
+    data.dayStart || "00:00";
+
+  $("themeSelect").value =
+    data.theme || "dark";
+
+  $("restDay").checked =
+    !!data.restDays[dateKey()];
+
+  document
+    .querySelectorAll(".preset")
+    .forEach(
+      button => {
+
+        button.classList.toggle(
+          "selected",
+          Number(
+            button.dataset.preset
+          ) ===
+          Number(
+            data.defaultAmount
+          )
+        );
+
+      }
+    );
+
+}
+
+
+function saveSettings() {
+
+  const amount =
+    Math.max(
+      1,
+      Math.round(
+        Number(
+          $("defaultAmount").value
+        ) || 10
+      )
+    );
+
+  const goal =
+    Math.max(
+      1,
+      Math.round(
+        Number(
+          $("dailyGoal").value
+        ) || 100
+      )
+    );
+
+  data.defaultAmount =
+    amount;
+
+  data.dailyGoal =
+    goal;
+
+  data.dayStart =
+    $("dayStart").value ||
+    "00:00";
+
+  data.theme =
+    $("themeSelect").value;
+
+  const key =
+    dateKey();
+
+  if (
+    $("restDay").checked
+  ) {
+
+    data.restDays[key] =
+      true;
+
+  } else {
+
+    delete data.restDays[key];
+
+  }
+
+  saveCurrentUser();
+
+  applyTheme();
+
+  render();
+
+  $("settingsDialog").close();
+
+  showToast(
+    "Settings saved."
+  );
+
+}
+
+
+function applyTheme() {
+
+  let theme =
+    data?.theme || "dark";
+
+  if (theme === "system") {
+
+    theme =
+      window.matchMedia(
+        "(prefers-color-scheme: light)"
+      ).matches
+        ? "light"
+        : "dark";
+
+  }
+
+  document.body.classList.toggle(
+    "light",
+    theme === "light"
+  );
+
+}
+
+
+/* =====================================================
+   EXPORT / IMPORT
+===================================================== */
+
+function exportData() {
+
+  const payload = {
+
+    app:
+      "Push-Up Tracker",
+
+    version:
+      1,
+
+    username:
+      dataUsername(),
+
+    exportedAt:
+      new Date().toISOString(),
+
+    data
+
+  };
+
+  const blob =
+    new Blob(
+      [
+        JSON.stringify(
+          payload,
+          null,
+          2
+        )
+      ],
+      {
+        type:
+          "application/json"
+      }
+    );
+
+  const url =
+    URL.createObjectURL(blob);
+
+  const a =
+    document.createElement("a");
+
+  a.href = url;
+
+  a.download =
+    `pushup-backup-${dateKey()}.json`;
+
+  a.click();
+
+  URL.revokeObjectURL(url);
+
+  showToast(
+    "Backup exported."
+  );
+
+}
+
+
+function importData(file) {
+
+  const reader =
+    new FileReader();
+
+  reader.onload =
+    event => {
+
+      try {
+
+        const payload =
+          JSON.parse(
+            event.target.result
+          );
 
         if (
-          navigator.vibrate
+          !payload.data ||
+          typeof payload.data !== "object"
         ) {
 
-          navigator.vibrate(
-            [200, 100, 200]
+          throw new Error(
+            "Invalid backup."
           );
 
         }
 
+        data =
+          Object.assign(
+            createDefaultData(),
+            payload.data
+          );
+
+        saveCurrentUser();
+
+        render();
+
+        showToast(
+          "Backup imported."
+        );
+
+      } catch {
+
+        showToast(
+          "Invalid backup file."
+        );
+
       }
 
-    }, 1000);
+    };
+
+  reader.readAsText(file);
 
 }
 
 
-function stopTimer() {
-
-  if (timerInterval) {
-
-    clearInterval(
-      timerInterval
-    );
-
-    timerInterval = null;
-
-  }
-
-}
-
-
-function resetTimer() {
-
-  stopTimer();
-
-  timerRemaining =
-    Number(data.settings.restTimer) || 60;
-
-  updateTimerDisplay();
-
-}
-
-
-/* ============================================================
+/* =====================================================
    NAVIGATION
-============================================================ */
+===================================================== */
 
-function switchScreen(screenId) {
+function switchTab(tab) {
 
-  const screens =
-    document.querySelectorAll(
-      ".app-screen"
+  document
+    .querySelectorAll(".tab-content")
+    .forEach(
+      section => {
+
+        section.classList.remove(
+          "active"
+        );
+
+      }
     );
 
+  document
+    .querySelectorAll(".nav-btn")
+    .forEach(
+      button => {
 
-  const buttons =
-    document.querySelectorAll(
-      ".nav-button"
+        button.classList.toggle(
+          "active",
+          button.dataset.tab === tab
+        );
+
+      }
     );
 
+  const target =
+    $(`${tab}Tab`);
 
-  screens.forEach(screen => {
+  if (target) {
 
-    screen.hidden =
-      screen.id !== screenId;
-
-  });
-
-
-  buttons.forEach(button => {
-
-    button.classList.toggle(
-      "active",
-      button.dataset.screen === screenId
+    target.classList.add(
+      "active"
     );
 
-  });
-
-
-  if (screenId === "calendarScreen") {
-
-    renderCalendar();
-
-    renderSelectedDay();
-
   }
-
-
-  if (screenId === "statsScreen") {
-
-    renderStats();
-
-  }
-
-
-  if (screenId === "historyScreen") {
-
-    renderFullHistory();
-
-  }
-
 
   window.scrollTo({
     top: 0,
@@ -1553,734 +1809,524 @@ function switchScreen(screenId) {
 }
 
 
-/* ============================================================
-   CLEAR DATA
-============================================================ */
+/* =====================================================
+   VISIBILITY CSS
+===================================================== */
 
-function clearAllHistory() {
+const style =
+  document.createElement("style");
 
-  const confirmed =
-    confirm(
-      "Are you sure you want to delete all push-up history? This cannot be undone."
-    );
-
-
-  if (!confirmed) {
-    return;
+style.textContent = `
+  .tab-content {
+    display: none;
   }
 
-
-  data.history = [];
-
-  /*
-    Correct the history object after clearing.
-  */
-
-  data.history = {};
-
-  data.activities = [];
-
-  saveData();
-
-  render();
-
-  showToast("All history cleared");
-
-}
-
-
-function resetEverything() {
-
-  const confirmed =
-    confirm(
-      "This will permanently delete ALL Push-Up Tracker data. Continue?"
-    );
-
-
-  if (!confirmed) {
-    return;
+  .tab-content.active {
+    display: block;
   }
+`;
 
+document.head.appendChild(style);
 
-  data =
-    structuredClone(
-      DEFAULT_DATA
-    );
 
+/* =====================================================
+   UI HELPERS
+===================================================== */
 
-  saveData();
-
-  render();
-
-  resetTimer();
-
-  closeSettings();
-
-  showToast("All data reset");
-
-}
-
-
-/* ============================================================
-   EXPORT DATA
-============================================================ */
-
-function exportData() {
-
-  const json =
-    JSON.stringify(
-      data,
-      null,
-      2
-    );
-
-
-  const blob =
-    new Blob(
-      [json],
-      {
-        type: "application/json"
-      }
-    );
-
-
-  const url =
-    URL.createObjectURL(blob);
-
-
-  const link =
-    document.createElement("a");
-
-
-  link.href = url;
-
-  link.download =
-    `pushup-tracker-backup-${todayKey()}.json`;
-
-
-  document.body.appendChild(link);
-
-  link.click();
-
-  link.remove();
-
-
-  URL.revokeObjectURL(url);
-
-  showToast("Data exported");
-
-}
-
-
-/* ============================================================
-   IMPORT DATA
-============================================================ */
-
-function importDataFromFile(file) {
-
-  if (!file) {
-    return;
-  }
-
-
-  const reader =
-    new FileReader();
-
-
-  reader.onload = event => {
-
-    try {
-
-      const imported =
-        JSON.parse(
-          event.target.result
-        );
-
-
-      if (
-        !imported ||
-        typeof imported !== "object"
-      ) {
-
-        throw new Error(
-          "Invalid backup"
-        );
-
-      }
-
-
-      data = {
-
-        ...structuredClone(
-          DEFAULT_DATA
-        ),
-
-        ...imported,
-
-        settings: {
-          ...DEFAULT_DATA.settings,
-          ...(imported.settings || {})
-        },
-
-        history:
-          imported.history || {},
-
-        activities:
-          Array.isArray(
-            imported.activities
-          )
-            ? imported.activities
-            : []
-
-      };
-
-
-      saveData();
-
-      render();
-
-      showToast(
-        "Data imported successfully"
-      );
-
-
-    } catch (error) {
-
-      console.error(error);
-
-      showToast(
-        "Invalid backup file"
-      );
-
-    }
-
-  };
-
-
-  reader.readAsText(file);
-
-}
-
-
-/* ============================================================
-   CLEAR CURRENT DAY
-============================================================ */
-
-function clearToday() {
-
-  const key =
-    todayKey();
-
-
-  delete data.history[key];
-
-
-  data.activities =
-    data.activities.filter(
-      activity =>
-        activity.date !== key
-    );
-
-
-  saveData();
-
-  render();
-
-  showToast("Today's data cleared");
-
-}
-
-
-/* ============================================================
-   TOAST
-============================================================ */
-
-let toastTimeout = null;
-
+let toastTimer;
 
 function showToast(message) {
 
   const toast =
-    document.getElementById(
-      "toast"
-    );
-
-
-  if (!toast) {
-    return;
-  }
-
+    $("toast");
 
   toast.textContent =
     message;
-
 
   toast.classList.add(
     "show"
   );
 
-
   clearTimeout(
-    toastTimeout
+    toastTimer
+  );
+
+  toastTimer =
+    setTimeout(
+      () => {
+
+        toast.classList.remove(
+          "show"
+        );
+
+      },
+      1800
+    );
+
+}
+
+
+function vibrate() {
+
+  if (
+    navigator.vibrate
+  ) {
+
+    navigator.vibrate(
+      12
+    );
+
+  }
+
+}
+
+
+function animateCounter() {
+
+  const total =
+    $("todayTotal");
+
+  total.classList.remove(
+    "pop"
+  );
+
+  void total.offsetWidth;
+
+  total.classList.add(
+    "pop"
+  );
+
+}
+
+
+/* =====================================================
+   EVENT LISTENERS
+===================================================== */
+
+$("loginBtn")
+  .addEventListener(
+    "click",
+    login
   );
 
 
-  toastTimeout =
-    setTimeout(() => {
+$("createAccountBtn")
+  .addEventListener(
+    "click",
+    createAccount
+  );
 
-      toast.classList.remove(
-        "show"
+
+$("loginPassword")
+  .addEventListener(
+    "keydown",
+    event => {
+
+      if (
+        event.key === "Enter"
+      ) {
+
+        login();
+
+      }
+
+    }
+  );
+
+
+$("addBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      addPushups(
+        data.defaultAmount
       );
 
-    }, 1800);
+    }
+  );
 
-}
-
-
-/* ============================================================
-   UTILITY
-============================================================ */
-
-function setText(id, value) {
-
-  const element =
-    document.getElementById(id);
-
-
-  if (element) {
-
-    element.textContent =
-      value;
-
-  }
-
-}
-
-
-function capitalize(value) {
-
-  if (!value) {
-    return "";
-  }
-
-
-  return value.charAt(0).toUpperCase()
-    + value.slice(1);
-
-}
-
-
-/* ============================================================
-   EVENT LISTENERS
-============================================================ */
 
 document.addEventListener(
-  "DOMContentLoaded",
+  "click",
+  event => {
+
+    const quick =
+      event.target.closest(
+        ".quick-btn"
+      );
+
+    if (quick) {
+
+      addPushups(
+        Number(
+          quick.dataset.amount
+        )
+      );
+
+      return;
+
+    }
+
+    const deleteButton =
+      event.target.closest(
+        "[data-delete-id]"
+      );
+
+    if (deleteButton) {
+
+      deleteActivity(
+        deleteButton.dataset.deleteId
+      );
+
+      return;
+
+    }
+
+    const calendarButton =
+      event.target.closest(
+        "[data-calendar-date]"
+      );
+
+    if (calendarButton) {
+
+      showCalendarDay(
+        calendarButton.dataset.calendarDate
+      );
+
+    }
+
+  }
+);
+
+
+$("undoBtn")
+  .addEventListener(
+    "click",
+    undoLast
+  );
+
+
+$("settingsBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      $("settingsDialog").showModal();
+
+    }
+  );
+
+
+$("closeSettings")
+  .addEventListener(
+    "click",
+    () => {
+
+      $("settingsDialog").close();
+
+    }
+  );
+
+
+$("saveSettings")
+  .addEventListener(
+    "click",
+    saveSettings
+  );
+
+
+document
+  .querySelectorAll(".preset")
+  .forEach(
+    button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          $("defaultAmount").value =
+            button.dataset.preset;
+
+        }
+      );
+
+    }
+  );
+
+
+document
+  .querySelectorAll(".nav-btn")
+  .forEach(
+    button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          switchTab(
+            button.dataset.tab
+          );
+
+        }
+      );
+
+    }
+  );
+
+
+$("prevMonth")
+  .addEventListener(
+    "click",
+    () => {
+
+      calendarDate.setMonth(
+        calendarDate.getMonth() - 1
+      );
+
+      renderCalendar();
+
+      $("selectedDayCard")
+        .classList.add(
+          "hidden"
+        );
+
+    }
+  );
+
+
+$("nextMonth")
+  .addEventListener(
+    "click",
+    () => {
+
+      calendarDate.setMonth(
+        calendarDate.getMonth() + 1
+      );
+
+      renderCalendar();
+
+      $("selectedDayCard")
+        .classList.add(
+          "hidden"
+        );
+
+    }
+  );
+
+
+$("clearBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      if (
+        !confirm(
+          "Are you sure you want to delete ALL push-up history?"
+        )
+      ) {
+
+        return;
+
+      }
+
+      data.history = [];
+
+      data.history = {};
+
+      data.activity = [];
+
+      data.achievements = {};
+
+      saveCurrentUser();
+
+      render();
+
+      showToast(
+        "All history cleared."
+      );
+
+    }
+  );
+
+
+$("exportBtn")
+  .addEventListener(
+    "click",
+    exportData
+  );
+
+
+$("importBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      $("importFile").click();
+
+    }
+  );
+
+
+$("importFile")
+  .addEventListener(
+    "change",
+    event => {
+
+      const file =
+        event.target.files[0];
+
+      if (file) {
+
+        importData(file);
+
+      }
+
+      event.target.value = "";
+
+    }
+  );
+
+
+$("logoutBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      if (
+        confirm(
+          "Log out of Push-Up Tracker?"
+        )
+      ) {
+
+        logout();
+
+      }
+
+    }
+  );
+
+
+$("closeCelebration")
+  .addEventListener(
+    "click",
+    () => {
+
+      $("celebration")
+        .classList.add(
+          "hidden"
+        );
+
+    }
+  );
+
+
+$("restDay")
+  .addEventListener(
+    "change",
+    () => {
+
+      const key =
+        dateKey();
+
+      if (
+        $("restDay").checked
+      ) {
+
+        data.restDays[key] =
+          true;
+
+      } else {
+
+        delete data.restDays[key];
+
+      }
+
+      saveCurrentUser();
+
+      render();
+
+    }
+  );
+
+
+/* =====================================================
+   INITIALIZATION
+===================================================== */
+
+function initialize() {
+
+  const session =
+    localStorage.getItem(
+      SESSION_KEY
+    );
+
+  const users =
+    getUsers();
+
+  if (
+    session &&
+    users[session]
+  ) {
+
+    currentUser =
+      session;
+
+    data =
+      Object.assign(
+        createDefaultData(),
+        users[session].data
+      );
+
+    users[session].data =
+      data;
+
+    saveUsers(users);
+
+    showApp();
+
+  } else {
+
+    $("loginScreen")
+      .classList.remove(
+        "hidden"
+      );
+
+    $("appScreen")
+      .classList.add(
+        "hidden"
+      );
+
+  }
+
+}
+
+
+initialize();
+
+
+/* =====================================================
+   AUTO SAVE WHEN LEAVING
+===================================================== */
+
+window.addEventListener(
+  "beforeunload",
+  saveCurrentUser
+);
+
+
+document.addEventListener(
+  "visibilitychange",
   () => {
 
-
-    /* Main button */
-
-    const addBtn =
-      document.getElementById(
-        "addBtn"
-      );
-
-
-    if (addBtn) {
-
-      addBtn.addEventListener(
-        "click",
-        () => {
-
-          addPushups(
-            data.settings.defaultAmount
-          );
-
-        }
-      );
-
-    }
-
-
-    /* Quick buttons */
-
-    document
-      .querySelectorAll(
-        ".quick-btn"
-      )
-      .forEach(button => {
-
-        button.addEventListener(
-          "click",
-          () => {
-
-            addPushups(
-              Number(
-                button.dataset.amount
-              )
-            );
-
-          }
-        );
-
-      });
-
-
-    /* Undo */
-
-    const undoBtn =
-      document.getElementById(
-        "undoBtn"
-      );
-
-
-    if (undoBtn) {
-
-      undoBtn.addEventListener(
-        "click",
-        undoLastAddition
-      );
-
-    }
-
-
-    /* Navigation */
-
-    document
-      .querySelectorAll(
-        ".nav-button"
-      )
-      .forEach(button => {
-
-        button.addEventListener(
-          "click",
-          () => {
-
-            switchScreen(
-              button.dataset.screen
-            );
-
-          }
-        );
-
-      });
-
-
-    /* Settings */
-
-    const settingsBtn =
-      document.getElementById(
-        "settingsBtn"
-      );
-
-
-    if (settingsBtn) {
-
-      settingsBtn.addEventListener(
-        "click",
-        openSettings
-      );
-
-    }
-
-
-    const closeSettingsBtn =
-      document.getElementById(
-        "closeSettings"
-      );
-
-
-    if (closeSettingsBtn) {
-
-      closeSettingsBtn.addEventListener(
-        "click",
-        closeSettings
-      );
-
-    }
-
-
-    const saveSettingsBtn =
-      document.getElementById(
-        "saveSettings"
-      );
-
-
-    if (saveSettingsBtn) {
-
-      saveSettingsBtn.addEventListener(
-        "click",
-        saveSettings
-      );
-
-    }
-
-
-    /* Presets */
-
-    document
-      .querySelectorAll(
-        ".preset"
-      )
-      .forEach(button => {
-
-        button.addEventListener(
-          "click",
-          () => {
-
-            selectPreset(
-              button.dataset.preset
-            );
-
-          }
-        );
-
-      });
-
-
-    /* Push-up types */
-
-    document
-      .querySelectorAll(
-        "#pushupTypes button"
-      )
-      .forEach(button => {
-
-        button.addEventListener(
-          "click",
-          () => {
-
-            selectPushupType(
-              button.dataset.type
-            );
-
-          }
-        );
-
-      });
-
-
-    /* Calendar navigation */
-
-    const previousMonth =
-      document.getElementById(
-        "previousMonth"
-      );
-
-
-    if (previousMonth) {
-
-      previousMonth.addEventListener(
-        "click",
-        () => {
-
-          calendarDate =
-            new Date(
-              calendarDate.getFullYear(),
-              calendarDate.getMonth() - 1,
-              1
-            );
-
-          renderCalendar();
-
-        }
-      );
-
-    }
-
-
-    const nextMonth =
-      document.getElementById(
-        "nextMonth"
-      );
-
-
-    if (nextMonth) {
-
-      nextMonth.addEventListener(
-        "click",
-        () => {
-
-          calendarDate =
-            new Date(
-              calendarDate.getFullYear(),
-              calendarDate.getMonth() + 1,
-              1
-            );
-
-          renderCalendar();
-
-        }
-      );
-
-    }
-
-
-    /* Rest timer */
-
-    const startTimerButton =
-      document.getElementById(
-        "startTimer"
-      );
-
-
-    if (startTimerButton) {
-
-      startTimerButton.addEventListener(
-        "click",
-        startTimer
-      );
-
-    }
-
-
-    const resetTimerButton =
-      document.getElementById(
-        "resetTimer"
-      );
-
-
-    if (resetTimerButton) {
-
-      resetTimerButton.addEventListener(
-        "click",
-        resetTimer
-      );
-
-    }
-
-
-    /* Clear history */
-
-    const clearBtn =
-      document.getElementById(
-        "clearBtn"
-      );
-
-
-    if (clearBtn) {
-
-      clearBtn.addEventListener(
-        "click",
-        clearAllHistory
-      );
-
-    }
-
-
-    const clearHistoryBtn =
-      document.getElementById(
-        "clearHistoryBtn"
-      );
-
-
-    if (clearHistoryBtn) {
-
-      clearHistoryBtn.addEventListener(
-        "click",
-        clearAllHistory
-      );
-
-    }
-
-
-    /* Export */
-
-    const exportButton =
-      document.getElementById(
-        "exportData"
-      );
-
-
-    if (exportButton) {
-
-      exportButton.addEventListener(
-        "click",
-        exportData
-      );
-
-    }
-
-
-    /* Import */
-
-    const importButton =
-      document.getElementById(
-        "importData"
-      );
-
-
-    const importFile =
-      document.getElementById(
-        "importFile"
-      );
-
-
     if (
-      importButton &&
-      importFile
+      document.visibilityState ===
+      "hidden"
     ) {
 
-      importButton.addEventListener(
-        "click",
-        () => {
-
-          importFile.click();
-
-        }
-      );
-
-
-      importFile.addEventListener(
-        "change",
-        event => {
-
-          importDataFromFile(
-            event.target.files[0]
-          );
-
-          event.target.value = "";
-
-        }
-      );
+      saveCurrentUser();
 
     }
-
-
-    /* Reset */
-
-    const resetButton =
-      document.getElementById(
-        "resetData"
-      );
-
-
-    if (resetButton) {
-
-      resetButton.addEventListener(
-        "click",
-        resetEverything
-      );
-
-    }
-
-
-    /* Initial timer */
-
-    resetTimer();
-
-
-    /* Initial render */
-
-    render();
-
-
-    /* Start on Home */
-
-    switchScreen(
-      "homeScreen"
-    );
 
   }
 );
