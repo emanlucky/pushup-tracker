@@ -1,19 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
   <meta charset="UTF-8">
 
   <meta
     name="viewport"
-    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
   >
 
-  <meta
-    name="theme-color"
-    content="#0b1020"
-  >
+  <meta name="theme-color" content="#111827">
 
   <meta
     name="apple-mobile-web-app-capable"
@@ -30,721 +25,648 @@
     content="Push-Up Tracker"
   >
 
-  <meta
-    name="description"
-    content="Track your push-ups, goals, streaks and progress."
-  >
-
-  <link
-    rel="manifest"
-    href="manifest.json"
-  >
-
-  <link
-    rel="stylesheet"
-    href="style.css"
-  >
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="./style.css">
 
   <title>Push-Up Tracker</title>
-
 </head>
-
 
 <body>
 
+<!-- =====================================================
+     LOGIN SCREEN
+===================================================== -->
 
-<main class="app">
+<div id="loginScreen" class="screen">
 
+  <div class="login-box">
 
-  <!-- HEADER -->
+    <div class="login-logo">💪</div>
 
-  <header class="app-header">
+    <p class="eyebrow">DAILY FITNESS</p>
 
-    <div>
+    <h1>Push-Up Tracker</h1>
 
-      <p class="eyebrow">
-        DAILY FITNESS
-      </p>
+    <p class="login-subtitle">
+      Track every push-up. Build your streak.
+    </p>
 
-      <h1>
-        Push-Up Tracker
-      </h1>
+    <div id="loginForm">
+
+      <label>
+        Username
+
+        <input
+          id="loginUsername"
+          type="text"
+          autocomplete="username"
+          placeholder="Enter username"
+          maxlength="30"
+        >
+      </label>
+
+      <label>
+        Password
+
+        <input
+          id="loginPassword"
+          type="password"
+          autocomplete="current-password"
+          placeholder="Enter password"
+          maxlength="50"
+        >
+      </label>
+
+      <button id="loginBtn" class="primary-btn">
+        Log In
+      </button>
+
+      <button id="createAccountBtn" class="secondary-btn">
+        Create Account
+      </button>
+
+      <p id="loginMessage" class="login-message"></p>
 
     </div>
 
-    <button
-      id="settingsBtn"
-      class="icon-btn"
-      type="button"
-      aria-label="Settings"
-    >
-      ⚙️
-    </button>
+  </div>
 
-  </header>
+</div>
 
 
-  <!-- ========================================================
-       HOME
-  ========================================================= -->
+<!-- =====================================================
+     MAIN APP
+===================================================== -->
 
-  <div
-    id="homeScreen"
-    class="app-screen"
-  >
+<div id="appScreen" class="screen hidden">
 
+  <main class="app">
 
-    <!-- TODAY -->
+    <!-- HEADER -->
 
-    <section class="card today-card">
+    <header class="top-header">
 
-      <p class="label">
-        TODAY
-      </p>
+      <div>
 
-      <div
-        id="todayTotal"
-        class="total"
-      >
-        0
+        <p class="eyebrow">
+          DAILY FITNESS
+        </p>
+
+        <h1>
+          Push-Up Tracker
+        </h1>
+
+        <p id="welcomeText" class="welcome-text"></p>
+
       </div>
 
-      <p class="subtext">
-        push-ups
-      </p>
+      <button
+        id="settingsBtn"
+        class="icon-btn"
+        aria-label="Settings"
+      >
+        ⚙️
+      </button>
+
+    </header>
 
 
-      <!-- GOAL -->
+    <!-- =================================================
+         HOME TAB
+    ================================================= -->
 
-      <div class="progress-wrap">
+    <div id="homeTab" class="tab-content active">
 
-        <div class="progress-label">
+      <section class="card today-card">
 
-          <span>
-            Daily goal
+        <p class="label">
+          TODAY
+        </p>
+
+        <div
+          id="todayTotal"
+          class="total"
+        >
+          0
+        </div>
+
+        <p class="subtext">
+          push-ups
+        </p>
+
+
+        <!-- GOAL -->
+
+        <div class="progress-wrap">
+
+          <div class="progress-label">
+
+            <span>
+              Daily goal
+            </span>
+
+            <strong id="goalText">
+              0 / 100
+            </strong>
+
+          </div>
+
+          <div class="progress">
+
+            <div id="progressBar"></div>
+
+          </div>
+
+        </div>
+
+
+        <!-- MAIN BUTTON -->
+
+        <button
+          id="addBtn"
+          class="add-btn"
+        >
+
+          <span class="plus-symbol">+</span>
+
+          <span id="addAmount">
+            10
           </span>
 
-          <strong id="goalText">
-            0 / 100
-          </strong>
+        </button>
+
+
+        <p class="tap-hint">
+          Tap to add push-ups
+        </p>
+
+
+        <!-- QUICK BUTTONS -->
+
+        <div
+          id="quickButtons"
+          class="quick-row"
+        >
+
+          <button
+            class="quick-btn"
+            data-amount="5"
+          >
+            +5
+          </button>
+
+          <button
+            class="quick-btn"
+            data-amount="25"
+          >
+            +25
+          </button>
+
+          <button
+            class="quick-btn"
+            data-amount="50"
+          >
+            +50
+          </button>
 
         </div>
 
-        <div class="progress">
 
-          <div
-            id="progressBar"
-          ></div>
+        <button
+          id="undoBtn"
+          class="undo-btn"
+        >
+          ↩ Undo last addition
+        </button>
+
+      </section>
+
+
+      <!-- TODAY ACTIVITY -->
+
+      <section class="card">
+
+        <div class="section-title">
+
+          <div>
+
+            <h2>
+              Today's Activity
+            </h2>
+
+            <p class="section-subtitle">
+              Every push-up session you've logged
+            </p>
+
+          </div>
 
         </div>
 
-      </div>
+        <div id="todayActivityLog">
+
+          <div class="empty">
+            No push-ups logged today.
+          </div>
+
+        </div>
+
+      </section>
 
 
-      <!-- MAIN BUTTON -->
+      <!-- ACHIEVEMENTS -->
 
-      <button
-        id="addBtn"
-        class="add-btn"
-        type="button"
-      >
+      <section class="card">
 
-        <span class="plus">
-          +
-        </span>
+        <div class="section-title">
 
-        <span id="addAmount">
-          10
-        </span>
+          <div>
 
-      </button>
+            <h2>
+              Achievements
+            </h2>
 
+            <p class="section-subtitle">
+              Keep pushing to unlock them
+            </p>
 
-      <!-- QUICK BUTTONS -->
+          </div>
 
-      <div class="quick-row">
+          <span id="achievementCount" class="badge">
+            0/8
+          </span>
 
-        <button
-          class="quick-btn"
-          data-amount="5"
-          type="button"
-        >
-          +5
-        </button>
+        </div>
 
-        <button
-          class="quick-btn"
-          data-amount="25"
-          type="button"
-        >
-          +25
-        </button>
+        <div
+          id="achievements"
+          class="achievement-grid"
+        ></div>
 
-        <button
-          class="quick-btn"
-          data-amount="50"
-          type="button"
-        >
-          +50
-        </button>
+      </section>
 
-      </div>
+    </div>
 
 
-      <button
-        id="undoBtn"
-        class="undo-btn"
-        type="button"
-      >
-        Undo last addition
-      </button>
+    <!-- =================================================
+         STATS TAB
+    ================================================= -->
 
-    </section>
+    <div id="statsTab" class="tab-content">
 
+      <section class="card">
 
-    <!-- ACTIVITY -->
-
-    <section class="card">
-
-      <div class="section-title">
-
-        <div>
-
-          <p class="small-label">
-            TODAY
-          </p>
+        <div class="section-title">
 
           <h2>
-            Activity Log
+            Statistics
           </h2>
 
         </div>
 
-        <span class="small-label">
-          WHEN + HOW MANY
-        </span>
-
-      </div>
-
-      <div id="activityLog">
-
-        <div class="empty">
-          No push-ups logged today.
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- HISTORY -->
-
-    <section class="card">
-
-      <div class="section-title">
-
-        <h2>
-          Recent History
-        </h2>
-
-        <button
-          id="clearBtn"
-          class="text-btn"
-          type="button"
-        >
-          Clear all
-        </button>
-
-      </div>
-
-      <div id="history">
-
-        <div class="empty">
-          No push-ups logged yet.
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- STATS -->
-
-    <section class="stats-grid">
-
-      <div class="stat-card">
-
-        <span>
-          Total
-        </span>
-
-        <strong id="allTime">
-          0
-        </strong>
-
-      </div>
-
-      <div class="stat-card">
-
-        <span>
-          Average
-        </span>
-
-        <strong id="average">
-          0
-        </strong>
-
-      </div>
-
-      <div class="stat-card">
-
-        <span>
-          Best Day
-        </span>
-
-        <strong id="best">
-          0
-        </strong>
-
-      </div>
-
-      <div class="stat-card">
-
-        <span>
-          Streak
-        </span>
-
-        <strong id="streak">
-          0 🔥
-        </strong>
-
-      </div>
-
-    </section>
-
-  </div>
-
-
-  <!-- ========================================================
-       STATS
-  ========================================================= -->
-
-  <div
-    id="statsScreen"
-    class="app-screen"
-    hidden
-  >
-
-    <section class="card">
-
-      <p class="eyebrow">
-        YOUR PROGRESS
-      </p>
-
-      <h2>
-        Statistics
-      </h2>
-
-      <div class="stats-grid large-stats">
-
-        <div class="stat-card">
+        <div class="big-stat">
 
           <span>
-            All-Time
+            ALL-TIME PUSH-UPS
           </span>
 
-          <strong id="statsAllTime">
+          <strong id="allTime">
             0
           </strong>
 
         </div>
 
-        <div class="stat-card">
+      </section>
+
+
+      <section class="stats-grid">
+
+        <div class="stat card">
+
+          <span>
+            This Week
+          </span>
+
+          <strong id="weekTotal">
+            0
+          </strong>
+
+        </div>
+
+        <div class="stat card">
+
+          <span>
+            This Month
+          </span>
+
+          <strong id="monthTotal">
+            0
+          </strong>
+
+        </div>
+
+        <div class="stat card">
 
           <span>
             Average
           </span>
 
-          <strong id="statsAverage">
+          <strong id="average">
             0
           </strong>
 
         </div>
 
-        <div class="stat-card">
+        <div class="stat card">
 
           <span>
             Best Day
           </span>
 
-          <strong id="statsBest">
+          <strong id="best">
             0
           </strong>
 
         </div>
 
-        <div class="stat-card">
+        <div class="stat card">
 
           <span>
-            Streak
+            Current Streak
           </span>
 
-          <strong id="statsStreak">
+          <strong id="streak">
             0 🔥
           </strong>
 
         </div>
 
-      </div>
+        <div class="stat card">
 
-    </section>
+          <span>
+            Longest Streak
+          </span>
 
+          <strong id="longestStreak">
+            0 🔥
+          </strong>
 
-    <section class="card">
+        </div>
 
-      <div class="section-title">
-
-        <h2>
-          Last 7 Days
-        </h2>
-
-        <span class="small-label">
-          PUSH-UPS
-        </span>
-
-      </div>
-
-      <div
-        id="weeklyChart"
-        class="weekly-chart"
-      ></div>
-
-    </section>
+      </section>
 
 
-    <section class="card">
+      <!-- WEEKLY GRAPH -->
 
-      <div class="section-title">
+      <section class="card">
 
-        <h2>
-          Push-Up Type
-        </h2>
+        <div class="section-title">
 
-        <span class="small-label">
-          CURRENT
-        </span>
+          <div>
 
-      </div>
+            <h2>
+              This Week
+            </h2>
 
-      <div
-        id="pushupTypes"
-        class="type-buttons"
-      >
+            <p class="section-subtitle">
+              Push-ups per day
+            </p>
 
-        <button
-          type="button"
-          data-type="standard"
-          class="selected"
-        >
-          Standard
-        </button>
+          </div>
 
-        <button
-          type="button"
-          data-type="wide"
-        >
-          Wide
-        </button>
+        </div>
 
-        <button
-          type="button"
-          data-type="diamond"
-        >
-          Diamond
-        </button>
+        <div
+          id="weeklyChart"
+          class="weekly-chart"
+        ></div>
 
-        <button
-          type="button"
-          data-type="decline"
-        >
-          Decline
-        </button>
+      </section>
 
-      </div>
-
-    </section>
+    </div>
 
 
-    <section class="card">
+    <!-- =================================================
+         CALENDAR TAB
+    ================================================= -->
 
-      <div class="section-title">
+    <div id="calendarTab" class="tab-content">
 
-        <div>
+      <section class="card">
 
-          <h2>
-            Rest Timer
+        <div class="calendar-header">
+
+          <button
+            id="prevMonth"
+            class="calendar-arrow"
+          >
+            ‹
+          </button>
+
+          <h2 id="calendarTitle">
+            August 2026
           </h2>
 
-          <span class="small-label">
-            RECOVERY
+          <button
+            id="nextMonth"
+            class="calendar-arrow"
+          >
+            ›
+          </button>
+
+        </div>
+
+
+        <div class="weekdays">
+
+          <span>Sun</span>
+          <span>Mon</span>
+          <span>Tue</span>
+          <span>Wed</span>
+          <span>Thu</span>
+          <span>Fri</span>
+          <span>Sat</span>
+
+        </div>
+
+
+        <div
+          id="calendar"
+          class="calendar"
+        ></div>
+
+
+        <div class="calendar-legend">
+
+          <span>
+            <i class="legend-dot completed"></i>
+            Goal
+          </span>
+
+          <span>
+            <i class="legend-dot partial"></i>
+            Partial
+          </span>
+
+          <span>
+            <i class="legend-dot missed"></i>
+            None
           </span>
 
         </div>
 
-      </div>
+      </section>
 
-      <div
-        id="restTimer"
-        class="rest-timer"
+
+      <section
+        id="selectedDayCard"
+        class="card hidden"
       >
-        01:00
-      </div>
 
-      <div class="timer-buttons">
+        <div class="section-title">
 
-        <button
-          id="startTimer"
-          type="button"
-        >
-          Start
-        </button>
+          <div>
 
-        <button
-          id="resetTimer"
-          type="button"
-        >
-          Reset
-        </button>
+            <h2 id="selectedDayTitle">
+              Day
+            </h2>
 
-      </div>
+            <p
+              id="selectedDayTotal"
+              class="section-subtitle"
+            ></p>
 
-    </section>
-
-  </div>
-
-
-  <!-- ========================================================
-       CALENDAR
-  ========================================================= -->
-
-  <div
-    id="calendarScreen"
-    class="app-screen"
-    hidden
-  >
-
-    <section class="card">
-
-      <div class="calendar-header">
-
-        <button
-          id="previousMonth"
-          class="calendar-nav"
-          type="button"
-        >
-          ‹
-        </button>
-
-        <strong id="calendarMonth">
-          Month Year
-        </strong>
-
-        <button
-          id="nextMonth"
-          class="calendar-nav"
-          type="button"
-        >
-          ›
-        </button>
-
-      </div>
-
-
-      <div class="calendar-weekdays">
-
-        <span>Sun</span>
-        <span>Mon</span>
-        <span>Tue</span>
-        <span>Wed</span>
-        <span>Thu</span>
-        <span>Fri</span>
-        <span>Sat</span>
-
-      </div>
-
-
-      <div
-        id="calendar"
-        class="calendar-grid"
-      ></div>
-
-    </section>
-
-
-    <section class="card">
-
-      <div class="section-title">
-
-        <h2 id="selectedDate">
-          Today
-        </h2>
-
-        <span
-          id="selectedDateTotal"
-          class="small-label"
-        >
-          0 PUSH-UPS
-        </span>
-
-      </div>
-
-      <div id="selectedDayActivity">
-
-        <div class="empty">
-          Select a day to view activity.
-        </div>
-
-      </div>
-
-    </section>
-
-  </div>
-
-
-  <!-- ========================================================
-       HISTORY
-  ========================================================= -->
-
-  <div
-    id="historyScreen"
-    class="app-screen"
-    hidden
-  >
-
-    <section class="card">
-
-      <div class="section-title">
-
-        <div>
-
-          <p class="eyebrow">
-            YOUR WORKOUTS
-          </p>
-
-          <h2>
-            Full History
-          </h2>
+          </div>
 
         </div>
 
-        <button
-          id="clearHistoryBtn"
-          class="text-btn"
-          type="button"
-        >
-          Clear
-        </button>
+        <div id="selectedDayActivity"></div>
 
-      </div>
+      </section>
 
-      <div id="fullHistory">
+    </div>
 
-        <div class="empty">
-          No workout history yet.
+
+    <!-- =================================================
+         HISTORY TAB
+    ================================================= -->
+
+    <div id="historyTab" class="tab-content">
+
+      <section class="card">
+
+        <div class="section-title">
+
+          <div>
+
+            <h2>
+              History
+            </h2>
+
+            <p class="section-subtitle">
+              Your daily totals
+            </p>
+
+          </div>
+
+          <button
+            id="clearBtn"
+            class="text-btn danger"
+          >
+            Clear
+          </button>
+
         </div>
 
-      </div>
+        <div id="history">
 
-    </section>
+          <div class="empty">
+            No push-ups logged yet.
+          </div>
 
-  </div>
+        </div>
 
-
-</main>
-
-
-<!-- ============================================================
-     BOTTOM NAVIGATION
-============================================================ -->
-
-<nav
-  class="bottom-nav"
-  aria-label="Main navigation"
->
-
-  <button
-    class="nav-button active"
-    data-screen="homeScreen"
-    type="button"
-  >
-
-    <span class="nav-icon">
-      🏠
-    </span>
-
-    <span>
-      Home
-    </span>
-
-  </button>
+      </section>
 
 
-  <button
-    class="nav-button"
-    data-screen="statsScreen"
-    type="button"
-  >
+      <section class="card">
 
-    <span class="nav-icon">
-      📊
-    </span>
+        <div class="section-title">
 
-    <span>
-      Stats
-    </span>
+          <div>
 
-  </button>
+            <h2>
+              All Activity
+            </h2>
 
+            <p class="section-subtitle">
+              Every logged addition
+            </p>
 
-  <button
-    class="nav-button"
-    data-screen="calendarScreen"
-    type="button"
-  >
+          </div>
 
-    <span class="nav-icon">
-      📅
-    </span>
+        </div>
 
-    <span>
-      Calendar
-    </span>
+        <div id="activityLog">
 
-  </button>
+          <div class="empty">
+            No activity yet.
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
 
 
-  <button
-    class="nav-button"
-    data-screen="historyScreen"
-    type="button"
-  >
+    <!-- =================================================
+         BOTTOM NAVIGATION
+    ================================================= -->
 
-    <span class="nav-icon">
-      📋
-    </span>
+    <nav class="bottom-nav">
 
-    <span>
-      History
-    </span>
+      <button
+        class="nav-btn active"
+        data-tab="home"
+      >
+        <span>🏠</span>
+        <small>Home</small>
+      </button>
 
-  </button>
+      <button
+        class="nav-btn"
+        data-tab="stats"
+      >
+        <span>📊</span>
+        <small>Stats</small>
+      </button>
 
-</nav>
+      <button
+        class="nav-btn"
+        data-tab="calendar"
+      >
+        <span>📅</span>
+        <small>Calendar</small>
+      </button>
+
+      <button
+        class="nav-btn"
+        data-tab="history"
+      >
+        <span>📜</span>
+        <small>History</small>
+      </button>
+
+    </nav>
+
+  </main>
+
+</div>
 
 
-<!-- ============================================================
-     SETTINGS
-============================================================ -->
+<!-- =====================================================
+     SETTINGS DIALOG
+===================================================== -->
 
 <dialog id="settingsDialog">
 
@@ -754,27 +676,27 @@
 
       <div>
 
-        <p class="eyebrow">
-          CUSTOMIZE
-        </p>
-
         <h2>
           Settings
         </h2>
+
+        <p class="section-subtitle">
+          Customize your tracker
+        </p>
 
       </div>
 
       <button
         id="closeSettings"
         class="icon-btn"
-        type="button"
-        aria-label="Close settings"
       >
         ✕
       </button>
 
     </div>
 
+
+    <!-- DEFAULT AMOUNT -->
 
     <label>
 
@@ -785,69 +707,32 @@
         type="number"
         min="1"
         step="1"
-        value="10"
       >
 
     </label>
 
 
-    <p class="small-label">
-      QUICK PRESETS
-    </p>
+    <!-- QUICK PRESETS -->
 
+    <p class="small-label">
+      Quick presets
+    </p>
 
     <div class="preset-grid">
 
-      <button
-        class="preset"
-        data-preset="10"
-        type="button"
-      >
-        10
-      </button>
-
-      <button
-        class="preset"
-        data-preset="15"
-        type="button"
-      >
-        15
-      </button>
-
-      <button
-        class="preset"
-        data-preset="20"
-        type="button"
-      >
-        20
-      </button>
-
-      <button
-        class="preset"
-        data-preset="25"
-        type="button"
-      >
-        25
-      </button>
-
-      <button
-        class="preset"
-        data-preset="50"
-        type="button"
-      >
-        50
-      </button>
-
-      <button
-        class="preset"
-        data-preset="100"
-        type="button"
-      >
-        100
-      </button>
+      <button class="preset" data-preset="5">5</button>
+      <button class="preset" data-preset="10">10</button>
+      <button class="preset" data-preset="15">15</button>
+      <button class="preset" data-preset="20">20</button>
+      <button class="preset" data-preset="25">25</button>
+      <button class="preset" data-preset="50">50</button>
+      <button class="preset" data-preset="75">75</button>
+      <button class="preset" data-preset="100">100</button>
 
     </div>
 
+
+    <!-- DAILY GOAL -->
 
     <label>
 
@@ -858,65 +743,102 @@
         type="number"
         min="1"
         step="1"
-        value="100"
       >
 
     </label>
 
 
+    <!-- DAY START -->
+
     <label>
 
-      Rest timer
+      Day starts at
 
       <input
-        id="restTimerSetting"
-        type="number"
-        min="5"
-        step="5"
-        value="60"
+        id="dayStart"
+        type="time"
       >
 
       <span class="input-help">
-        Seconds
+        Push-ups before this time count toward the previous day.
       </span>
 
     </label>
 
 
+    <!-- THEME -->
+
+    <label>
+
+      Appearance
+
+      <select id="themeSelect">
+
+        <option value="dark">
+          Dark
+        </option>
+
+        <option value="light">
+          Light
+        </option>
+
+        <option value="system">
+          System
+        </option>
+
+      </select>
+
+    </label>
+
+
+    <!-- REST DAY -->
+
+    <label class="toggle-label">
+
+      <span>
+        Rest day today
+      </span>
+
+      <input
+        id="restDay"
+        type="checkbox"
+      >
+
+    </label>
+
+
+    <!-- SAVE -->
+
     <button
       id="saveSettings"
       class="save-btn"
-      type="button"
     >
       Save Settings
     </button>
 
 
-    <div class="settings-divider"></div>
+    <hr>
 
+
+    <!-- DATA -->
 
     <h3>
       Data
     </h3>
 
-
     <button
-      id="exportData"
-      class="wide-button"
-      type="button"
+      id="exportBtn"
+      class="secondary-btn"
     >
-      Export Data
+      💾 Export Backup
     </button>
 
-
     <button
-      id="importData"
-      class="wide-button"
-      type="button"
+      id="importBtn"
+      class="secondary-btn"
     >
-      Import Data
+      📂 Import Backup
     </button>
-
 
     <input
       id="importFile"
@@ -926,12 +848,25 @@
     >
 
 
+    <hr>
+
+
+    <!-- ACCOUNT -->
+
+    <h3>
+      Account
+    </h3>
+
+    <p class="account-info">
+      Logged in as
+      <strong id="accountUsername"></strong>
+    </p>
+
     <button
-      id="resetData"
-      class="wide-button danger"
-      type="button"
+      id="logoutBtn"
+      class="danger-btn"
     >
-      Reset All Data
+      Log Out
     </button>
 
   </div>
@@ -939,18 +874,49 @@
 </dialog>
 
 
-<!-- TOAST -->
+<!-- =====================================================
+     TOAST
+===================================================== -->
 
 <div
   id="toast"
   class="toast"
-  role="status"
-  aria-live="polite"
 ></div>
 
 
-<script src="app.js"></script>
+<!-- =====================================================
+     GOAL CELEBRATION
+===================================================== -->
+
+<div
+  id="celebration"
+  class="celebration hidden"
+>
+
+  <div class="celebration-box">
+
+    <div class="celebration-emoji">
+      🎉
+    </div>
+
+    <h2>
+      Goal Complete!
+    </h2>
+
+    <p>
+      You hit your daily push-up goal!
+    </p>
+
+    <button id="closeCelebration">
+      Let's Go 💪
+    </button>
+
+  </div>
+
+</div>
+
+
+<script src="./app.js"></script>
 
 </body>
-
 </html>
